@@ -9,6 +9,9 @@ import java.util.HashSet;
  */
 
 public class proteinREC {
+	
+	// test example
+	
 	private String sentence;
 
 	/**
