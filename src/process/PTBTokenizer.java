@@ -32,6 +32,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import com.sun.xml.internal.bind.v2.schemagen.xmlschema.Import;
+
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.Word;
@@ -749,6 +751,9 @@ public class PTBTokenizer<T extends HasWord> extends AbstractTokenizer<T> {
 	 *             If any file I/O problem
 	 */
 	public static void main(String[] args) throws IOException {
+		
+		edu.stanford.nlp.process.PTBTokenizer<HasWord> abctesTokenizer;		
+		
 		Properties options = StringUtils
 				.argsToProperties(args, optionArgDefs());
 		boolean showHelp = PropertiesUtils.getBool(options, "help", false);

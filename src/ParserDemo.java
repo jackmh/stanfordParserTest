@@ -7,19 +7,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Pattern;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
 import java.io.StringReader;
 
 import org.w3c.dom.ranges.RangeException;
-
-import com.sun.jndi.url.iiopname.iiopnameURLContextFactory;
-import com.sun.org.apache.bcel.internal.generic.NEW;
-import com.sun.org.apache.xml.internal.serializer.ElemDesc;
-import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 
 
 import edu.stanford.nlp.process.Tokenizer;
@@ -29,25 +21,17 @@ import edu.stanford.nlp.process.WordToSentenceProcessor;
 //import edu.stanford.nlp.process.DocumentPreprocessor;
 import process.DocumentPreprocessor;
 import process.wordToSentence;
-import sun.misc.OSEnvironment;
 
 import edu.stanford.nlp.process.PTBTokenizer;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.HasWord;
-import edu.stanford.nlp.ling.Label;
 import edu.stanford.nlp.ling.LabeledWord;
-import edu.stanford.nlp.ling.Sentence;
 import edu.stanford.nlp.ling.Word;
 import edu.stanford.nlp.trees.*;
 import edu.stanford.nlp.trees.tregex.TregexMatcher;
 import edu.stanford.nlp.trees.tregex.TregexPattern;
 import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
 
-
-import edu.stanford.nlp.semgraph.SemanticGraph;
-import edu.stanford.nlp.semgraph.SemanticGraphFactory;
-import edu.stanford.nlp.semgraph.semgrex.SemgrexMatcher;
-import edu.stanford.nlp.semgraph.semgrex.SemgrexPattern;
 
 class ParserDemo {
 
@@ -70,7 +54,6 @@ class ParserDemo {
 		
 	/*************************************************/
 	
-	
 	private static HashSet<String> geneSet = new HashSet<String>();
 	private static HashSet<String> relationKeySet = new HashSet<String>();
 	
@@ -87,6 +70,7 @@ class ParserDemo {
 		}
 		if (args.length > 0) {
 			demoDP(lp, args[0]);
+			// D:/keTiInHIT_FROM2014_08/testData/16043634
 			// D:/keTiInHIT_FROM2014_08/tools/stanford-parser-full-2014-06-16/data/english-onesent.txt
 		} else {
 			demoAPI(lp);
@@ -144,6 +128,8 @@ class ParserDemo {
 		Tokenizer<CoreLabel> tok = tokenizerFactory
 				.getTokenizer(new StringReader(sent2));
 		List<CoreLabel> rawWords2 = tok.tokenize();
+		
+		
 		
 		Tree parse = lp.apply(rawWords2);
 
@@ -295,7 +281,7 @@ class ParserDemo {
 	 * */
 	public static String splitAbstractIntoSentence(String abstractPath) {
 		String newAbstractsString = "";
-		Iterable<String> allLines = IOUtils.readLines(abstractPath);		
+		Iterable<String> allLines = IOUtils.readLines(abstractPath);
 		Pattern pattern = Pattern.compile("\\.|\\!|\\?");
 		for (String line: allLines) 
 		{
