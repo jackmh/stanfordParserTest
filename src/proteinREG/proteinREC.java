@@ -10,7 +10,7 @@ import java.util.HashSet;
 
 public class proteinREC {
 	
-	// test example
+	// test example in this.
 	
 	private String sentence;
 
