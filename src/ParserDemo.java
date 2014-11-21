@@ -348,6 +348,44 @@ class ParserDemo {
 		}
 		return newAbstractText;
 	}
+	/*
+	 * 检查蛋白质全称是否存在于, 若存在则替换, 并返回替换长度
+	 * */
+	public static tempStrIntResult checkProteinFullnameExists(String firstCharLowerCase, int index, TreebankLanguagePack tlp, List<? extends HasWord> wordList) {
+		String value = firstCharDict.get(firstCharLowerCase);		
+		String[] allValueList = value.split("\\|");
+		ArrayList<String> sameFirstCharList = new ArrayList<String>();
+		for (String elemString  : allValueList) {
+			elemString = elemString.trim();
+			sameFirstCharList.add(elemString);
+		}
+		/*
+		 *  compare the key list in the allkeysSet start with key
+		 */
+		int wordListNum = wordList.size();
+		String[] keyList = null;
+		int numSubKey = 0, i;
+		tempStrIntResult resultSet = new tempStrIntResult(firstCharLowerCase, 1);
+		for (String subKeyStr: sameFirstCharList) {
+			keyList = subKeyStr.split(" ");
+			numSubKey = keyList.length;
+			i = 0;
+			while ((i < numSubKey) && ((index+i) < wordListNum)) {
+				String keystrString = keyList[i].trim();
+				String curWordString = wordList.get(index+i).toString();
+				if (keystrString.compareTo(curWordString) != 0) {
+					break;
+				}
+				i += 1;
+			}
+			if (i == numSubKey) {
+				resultSet.setStr(subKeyStr.trim());
+				resultSet.setInt(numSubKey);
+				return resultSet;
+			}
+		}
+		return resultSet;
+	}
 	
 	/*
 	 * 输入: OldSentence; 返回值: NewSentence

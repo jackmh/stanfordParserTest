@@ -8,8 +8,6 @@ import java.util.List;
 
 import process.wordToSentence;
 
-import sun.nio.cs.ext.ISCII91;
-
 import edu.stanford.nlp.ling.HasWord;
 import edu.stanford.nlp.process.PTBTokenizer;
 
@@ -83,17 +81,22 @@ public class proteinREC {
 		
 		int index = 0, numOfList = sentenceList.size();
 		ArrayList<String> newSentList = new ArrayList<String>();
+		
 		HashSet<String> variedWordsHashSet = new HashSet<String>();
 		HashMap<String, String> variedWordsHashMap = new HashMap<String, String>();
 		
 		String key, word;
+		List<HasWord> newSentWordList = new ArrayList<HasWord>();
 		while (index < numOfList) {
-			word = sentenceList.get(index).toString();
+			HasWord wordInSent = sentenceList.get(index);
+			word = wordInSent.word();
 			key = word.toLowerCase();
 			variedWordsHashMap.clear();
 			
 			if (conjwordset.contains(key))
 			{
+				//HasWord tmp = (HasWord)word;
+				//newSentWordList.add(wordInSent);
 				newSentList.add(word);
 			}
 			else if (allKeysSets.contains(key))
