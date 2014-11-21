@@ -1,3 +1,4 @@
+
 import io.IOUtils;
 
 import java.util.ArrayList;
@@ -5,10 +6,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
 import java.io.StringReader;
 
 import org.w3c.dom.ranges.RangeException;
@@ -21,6 +25,7 @@ import edu.stanford.nlp.process.WordToSentenceProcessor;
 //import edu.stanford.nlp.process.DocumentPreprocessor;
 import process.DocumentPreprocessor;
 import process.wordToSentence;
+import proteinREG.proteinREC;
 
 import edu.stanford.nlp.process.PTBTokenizer;
 import edu.stanford.nlp.ling.CoreLabel;
@@ -280,8 +285,42 @@ class ParserDemo {
 	 * 4. 由3得到的语法树, 结合关系词、gene库找到候选的蛋白质相互作用对
 	 * */
 	public static String splitAbstractIntoSentence(String abstractPath) {
-		String newAbstractsString = "";
 		Iterable<String> allLines = IOUtils.readLines(abstractPath);
+		/*********************************************************/ 
+		/*
+		 * 1. Convert the Abstract text into sentenceList. each list contain of sentence list.
+		 * 2. In each paragraph, split each sentence with char[.?!] as default.
+		 */		
+		String newAbstractText = "";
+		List<List<HasWord>> sentenceListWord = new LinkedList<List<HasWord>>();
+		for (String paragraph : allLines) {
+			if (paragraph.compareTo("") == 0 || paragraph.compareTo("\n") == 0)
+			{
+				newAbstractText += paragraph;
+				continue;
+			}
+			Reader reader = new StringReader(paragraph);
+			DocumentPreprocessor dp = new DocumentPreprocessor(reader);
+			
+			Iterator<List<HasWord>> it = dp.iterator();
+			// each sentence in paragraph.
+			sentenceListWord.clear();
+			while (it.hasNext()) {
+			   List<HasWord> sentence = it.next();
+			   sentenceListWord.add(sentence);
+			}
+			// convert the list into string, append it into newAbstractText
+			for(List<HasWord> sentence:sentenceListWord) {
+ 				proteinREC proteinSent = new proteinREC();
+ 				proteinREC.proteinRecognition(sentence, allKeysSets, firstCharDict, geneSynProteinDict);
+ 				System.out.println(sentence);
+ 				System.out.println(proteinSent.getSentence());
+				
+			}
+		}
+		/*********************************************************/
+		
+		
 		Pattern pattern = Pattern.compile("\\.|\\!|\\?");
 		for (String line: allLines) 
 		{
@@ -306,7 +345,7 @@ class ParserDemo {
 				}
 			}
 		}
-		return newAbstractsString;
+		return newAbstractText;
 	}
 	/*
 	 * 检查蛋白质全称是否存在于, 若存在则替换, 并返回替换长度

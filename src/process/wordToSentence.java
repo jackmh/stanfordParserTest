@@ -27,7 +27,7 @@ public class wordToSentence {
 	
 	private static HashMap<String, String> DEFAULT_BOUNDARY = new HashMap<String, String>(){
 		{put("-LRB-", "("); put("-LSB-", "["); put("-LCB-", "{");
-		put("-RRB-", ")"); put("-RSB-", "]"); put("-RCB-", "}"); put(",", ",");}
+		put("-RRB-", ")"); put("-RSB-", "]"); put("-RCB-", "}"); put(",", ","); put(".", ".");}
 	};
 	
 	private static HashSet<String> BoundaryLeftSet = new HashSet<String>() {
