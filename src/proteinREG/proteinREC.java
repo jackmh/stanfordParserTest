@@ -11,6 +11,7 @@ import process.wordToSentence;
 import sun.nio.cs.ext.ISCII91;
 
 import edu.stanford.nlp.ling.HasWord;
+import edu.stanford.nlp.process.PTBTokenizer;
 
 /*
  * input: 摘要中的每一个句子
@@ -54,10 +55,27 @@ public class proteinREC {
 	 * @param geneSynProteinDict
 	 * 从原始句子列表中识别出蛋白质、保存于字典proteinMap中，并将识别出的个数保存此中.
 	 */
+	/*
+	 * 输入: OldSentence; 返回值: NewSentence
+	 * 		(若Oldsentence ！= NewSentence且VariedWords>=2, 则输出该句子)
+	 * 处理每一个句子:
+	 * 1. 首先对每一个句子进行分词. 对每一个单词, 先判断它是否存在于allKeysSets集合中:
+	 * 		{若存在, 则直接修改该单词, 且VariedWords+1;
+	 * 		  若不存在, 则判断firstCharDict的所有keys中是否包含的此单词:
+	 * 			{若不包含, 直接返回; 
+	 * 			  若包含, 则判断此单词后序单词是否和firstCharDict.get(firstWord)中某一个相等:
+	 * 				{若相等, 则返回当前单词以及后续相等单词的个数num, 且VariedWords+1; 若不相等, 则直接返回1.}
+	 * 			}
+	 * 		}
+	 * 2. 返回一个句子中出现两个或两个以上蛋白质的句子
+	 * */
+	
 	public static void proteinRecognition(List<HasWord> sentenceList,
 			HashSet<String> allKeysSets,
 			HashMap<String, String> firstCharDict,
 			HashMap<String, String> geneSynProteinDict) {
+		originalSentence = PTBTokenizer.labelList2Text(sentenceList);
+		
 		HashSet<String> conjwordset = new HashSet<String>(
 				Arrays.asList("to", "of", "the", "and",
 				"but", "an", "for", "not", "are", "if",
@@ -114,6 +132,7 @@ public class proteinREC {
 			}
 			index += 1;
 		}
+		// newSentList = PTBTokenizer.labelList2Text(newSentList);
 		newSentence = wordToSentence.wordToString(newSentList);
 	}
 	
@@ -181,12 +200,16 @@ public class proteinREC {
 		}
 	}
 
+	public String getOriginalSentence() {
+		return originalSentence;
+	}
+	
 	public String getSentence() {
 		return newSentence;
 	}
 
 	public void setSentence(String sentence) {
-		this.newSentence = sentence;
+		newSentence = sentence;
 	}
 
 	// 句子中识别出的蛋白质数目
