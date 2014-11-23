@@ -46,8 +46,6 @@ public class GetRelationParseTree {
 		Tokenizer<CoreLabel> tok = tokenizerFactory
 				.getTokenizer(new StringReader(sentence));
 	}
-	
-	
 
 	public String getSentence() {
 		return sentence;
