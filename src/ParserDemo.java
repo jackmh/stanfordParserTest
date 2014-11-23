@@ -2,7 +2,6 @@
 import io.IOUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,16 +20,12 @@ import org.w3c.dom.ranges.RangeException;
 import edu.stanford.nlp.process.Tokenizer;
 import edu.stanford.nlp.process.TokenizerFactory;
 import edu.stanford.nlp.process.CoreLabelTokenFactory;
-import edu.stanford.nlp.process.WordToSentenceProcessor;
-//import edu.stanford.nlp.process.DocumentPreprocessor;
 import process.DocumentPreprocessor;
-import process.wordToSentence;
 import proteinREG.proteinREC;
 
 import edu.stanford.nlp.process.PTBTokenizer;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.HasWord;
-import edu.stanford.nlp.ling.LabeledWord;
 import edu.stanford.nlp.ling.Word;
 import edu.stanford.nlp.trees.*;
 import edu.stanford.nlp.trees.tregex.TregexMatcher;
@@ -210,7 +205,6 @@ class ParserDemo {
 	 * 3. 建立protein-Gene哈希表; (key: protein全称; Values: Gene名)
 	 * */
 	private static void init() throws IOException, RangeException{
-		
 		String[] arrs  = null;
 		/*
 		 * Relation words set
@@ -262,19 +256,6 @@ class ParserDemo {
 			// 这里会出现内存过大和后面的代码出现内存冲突问题
 			*************************************************************/
 			geneSynProteinDict.put(protein, gene);
-			
-			/*
-			if(geneSynProteinDict.containsKey(gene))
-			{	
-				ArrayList<String> proteins = geneSynProteinDict.get(gene);
-				proteins.add(protein);
-			}
-			else {
-				ArrayList<String> proteins = new ArrayList<String>();
-				proteins.add(protein);
-				geneSynProteinDict.put(gene, proteins);
-			}
-			******************************************/
 		}
 	}
 	
@@ -290,7 +271,7 @@ class ParserDemo {
 		/*
 		 * 1. Convert the Abstract text into sentenceList. each list contain of sentence list.
 		 * 2. In each paragraph, split each sentence with char[.?!] as default.
-		 */		
+		 */
 		String newAbstractText = "";
 		List<List<HasWord>> sentenceListWord = new LinkedList<List<HasWord>>();
 		for (String paragraph : allLines) {
@@ -313,199 +294,24 @@ class ParserDemo {
 			for(List<HasWord> sentence:sentenceListWord) {
  				proteinREC proteinSent = new proteinREC();
  				proteinREC.proteinRecognition(sentence, allKeysSets, firstCharDict, geneSynProteinDict);
- 				System.out.println(sentence);
- 				newAbstractText += proteinSent.getSentence();
- 				System.out.println(proteinSent.getSentence());
+ 				newAbstractText += proteinSent.getSentence() + " ";
+ 				if (proteinSent.getRecognitionProteinNum() >= 2) {
+	 				System.out.println(proteinSent.getOriginalSentence());
+	 				System.out.println(proteinSent.getSentence());
+	 				System.out.println();
+ 				}
 			}
+			newAbstractText = newAbstractText.trim();
 			newAbstractText += "\n";
 		}
-		/*********************************************************/
+		newAbstractText = newAbstractText.trim();
+		System.out.println("---------------------------------------------------------------");
+		System.out.println("---------------------------------------------------------------");
+		System.out.println(newAbstractText);
+		System.out.println("---------------------------------------------------------------");
+		System.out.println("---------------------------------------------------------------");
 		
-		
-		Pattern pattern = Pattern.compile("\\.|\\!|\\?");
-		for (String line: allLines) 
-		{
-			if (line.compareTo("") == 0 || line.compareTo("\n") == 0)
-				continue;
-			String[] strLineStrings = pattern.split(line);
-			for (String sent : strLineStrings)
-			{
-				sent = sent.trim();
-				// 识别出对每一句话中的蛋白质，并标准化
-				// 对标准化之后的句子进行分析
-				tempStrIntResult newSentenceRes = dealwithSentence(sent);
-				String newSentenceStr = newSentenceRes.getStr();
-				int variedWordsNum = newSentenceRes.getIntNumber();
-				if (newSentenceStr.compareTo(sent) != 0 && variedWordsNum > 1)
-				{
-					System.out.println("-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --");
-					System.out.println(sent);
-					System.out.println(newSentenceStr);
-					System.out.println("-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --");
-					System.out.println();
-				}
-			}
-		}
+		/**************************************************************************************/
 		return newAbstractText;
-	}
-	/*
-	 * 检查蛋白质全称是否存在于, 若存在则替换, 并返回替换长度
-	 * */
-	public static tempStrIntResult checkProteinFullnameExists(String firstCharLowerCase, int index, TreebankLanguagePack tlp, List<? extends HasWord> wordList) {
-		String value = firstCharDict.get(firstCharLowerCase);		
-		String[] allValueList = value.split("\\|");
-		ArrayList<String> sameFirstCharList = new ArrayList<String>();
-		for (String elemString  : allValueList) {
-			elemString = elemString.trim();
-			sameFirstCharList.add(elemString);
-		}
-		/*
-		 *  compare the key list in the allkeysSet start with key
-		 */
-		int wordListNum = wordList.size();
-		String[] keyList = null;
-		int numSubKey = 0, i;
-		tempStrIntResult resultSet = new tempStrIntResult(firstCharLowerCase, 1);
-		for (String subKeyStr: sameFirstCharList) {
-			keyList = subKeyStr.split(" ");
-			numSubKey = keyList.length;
-			i = 0;
-			while ((i < numSubKey) && ((index+i) < wordListNum)) {
-				String keystrString = keyList[i].trim();
-				String curWordString = wordList.get(index+i).toString();
-				if (keystrString.compareTo(curWordString) != 0) {
-					break;
-				}
-				i += 1;
-			}
-			if (i == numSubKey) {
-				resultSet.setStr(subKeyStr.trim());
-				resultSet.setInt(numSubKey);
-				return resultSet;
-			}
-		}
-		return resultSet;
-	}
-	
-	/*
-	 * 输入: OldSentence; 返回值: NewSentence
-	 * 		(若Oldsentence ！= NewSentence且VariedWords>=2, 则输出该句子)
-	 * 处理每一个句子:
-	 * 1. 首先对每一个句子进行分词. 对每一个单词, 先判断它是否存在于allKeysSets集合中:
-	 * 		{若存在, 则直接修改该单词, 且VariedWords+1;
-	 * 		  若不存在, 则判断firstCharDict的所有keys中是否包含的此单词:
-	 * 			{若不包含, 直接返回; 
-	 * 			  若包含, 则判断此单词后序单词是否和firstCharDict.get(firstWord)中某一个相等:
-	 * 				{若相等, 则返回当前单词以及后续相等单词的个数num, 且VariedWords+1; 若不相等, 则直接返回1.}
-	 * 			}
-	 * 		}
-	 * 2. 返回一个句子中出现两个或两个以上蛋白质的句子
-	 * */
-	public static tempStrIntResult dealwithSentence(String oldSentence) {
-		tempStrIntResult newSentenceRes = new tempStrIntResult(oldSentence, 0);
-		
-		// Use the default tokenizer for this TreebankLanguagePack
-		
-		TreebankLanguagePack tlp = new PennTreebankLanguagePack();
-		Tokenizer<? extends HasWord> toke = tlp.getTokenizerFactory()
-					.getTokenizer(new StringReader(oldSentence));
-		List<? extends HasWord> sentence2 = toke.tokenize();
-		
-		PTBTokenizer<HasWord> tstPtbTokenizer = null;
-		System.out.println(tstPtbTokenizer.labelList2Text(sentence2));
-		/*************************************************************************
-		 * 
-		 * 分詞
-		 * 
-		 * ***********************************************************************/
-		
-		WordToSentenceProcessor<HasWord> wordToSentencePro = new WordToSentenceProcessor<HasWord>();
-		System.out.println(wordToSentencePro.wordsToSentences(sentence2));
-
-		int wordNum = sentence2.size();
-		if (wordNum <= 2) {
-			return newSentenceRes;
-		}
-		
-//		Tree parse = lp.apply(sentence2);
-//		Pattern pattern = Pattern.compile("^NN.*");
-//		for (LabeledWord label: parse.labeledYield())
-//		{
-//			System.out.print(label + "\t");
-//			if (Pattern.matches("^NN.*", getLabelFromParseTree(label)))
-//			{
-//				System.out.println(getLabelValueFromParseTree(label));
-//			}
-//		}
-//		
-		int i = 0;
-		HashSet<String> variedWordsHashSet = new HashSet<String>();
-		HashSet<String> conjwordset = new HashSet<String>(
-				Arrays.asList("to", "of", "the", "and",
-				"but", "an", "for", "not", "are", "if",
-				"is", "was", "it", "in", "as"));
-		ArrayList<String> newSentList = new ArrayList<String>();
-		String key = "";
-		int variedWordsNum = 0;
-		while (i < wordNum) {
-			String word = sentence2.get(i).toString();
-			key = word.toLowerCase();
-			if (conjwordset.contains(key)) {
-				newSentList.add(word);
-			}
-			else if (allKeysSets.contains(key)) {
-				if (!variedWordsHashSet.contains(key))
-				{
-					variedWordsHashSet.add(key);
-					variedWordsNum += 1;
-				}
-				newSentList.add(geneSynProteinDict.get(key));
-			}
-			else if (firstCharDict.keySet().contains(key))
-			{
-				tempStrIntResult newkeySen = checkProteinFullnameExists(key, i, tlp, sentence2); 
-				String newSubkeyStr = newkeySen.getStr(); 
-				if (0 != newSubkeyStr.compareTo(key)) {
-					// different with key
-					if (!variedWordsHashSet.contains(newSubkeyStr)) {
-						variedWordsHashSet.add(newSubkeyStr);
-						variedWordsNum += 1;
-					}
-					newSentList.add(geneSynProteinDict.get(newSubkeyStr));
-				}
-				else {
-					newSentList.add(word);
-				}
-				i += newkeySen.getIntNumber() - 1;
-			}
-			else {
-				newSentList.add(word);
-			}
-			i += 1;
-		}
-		String newSentence = wordToSentence.wordToString(newSentList);
-		/*************************************************************************
-		 * 
-		 * 合并
-		 * 
-		 * ***********************************************************************/
-		newSentenceRes.setStr(newSentence);
-		newSentenceRes.setInt(variedWordsNum);
-		return newSentenceRes;
-	}
-	
-
-	private static String getLabelFromParseTree(LabeledWord word) {
-		String label = "";
-		String labelString = word.toString();
-		label = labelString.split("/")[1];
-		return label.trim();
-	}
-	
-	private static String getLabelValueFromParseTree(LabeledWord word) {
-		String labelValue = "";
-		String labelString = word.toString();
-		labelValue = labelString.split("/")[0];
-		return labelValue.trim();
 	}
 }

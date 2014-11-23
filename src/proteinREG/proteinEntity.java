@@ -6,33 +6,53 @@ package proteinREG;
  */
 public class proteinEntity {
 	
-	private String proteinFullName;
-	private int Count;
+	private String originalProteinFullName;
+	private int Count;			//蛋白质全称中包含单词个数
+	private String newProtein2GeneName;
 	
 	public proteinEntity() {
-		// TODO Auto-generated constructor stub
-		proteinFullName = "";
+		setNewProteinFullName("");
 		Count = 0;
 	}
 	
+	public void setProteinEntity(String oldProtein, String newProtein, int num) {
+		setOriginalProteinName(oldProtein);
+		setNewProteinFullName(newProtein);
+		setInt(num);
+	}
+	
 	public proteinEntity (String tmp, int num) {
-		proteinFullName = tmp;
+		setNewProteinFullName(tmp);
 		Count = num;
 	}
 	
-	public String getStr () {
-		return proteinFullName;
+	public proteinEntity (String oldProtein, String newProtein, int num) {
+		setOriginalProteinName(oldProtein);
+		setNewProteinFullName(newProtein);
+		Count = num;
 	}
-	
+
 	public int getIntNumber() {
 		return Count;
 	}
 	
-	public void setStr(String newStr) {
-		proteinFullName = newStr;
-	}
-	
 	public void setInt(int num) {
 		Count = num;
+	}
+
+	public String getOriginalProteinName() {
+		return originalProteinFullName;
+	}
+
+	public void setOriginalProteinName(String originalProteinName) {
+		this.originalProteinFullName = originalProteinName;
+	}
+
+	public String getNewProteinFullName() {
+		return newProtein2GeneName;
+	}
+
+	public void setNewProteinFullName(String newProteinFullName) {
+		this.newProtein2GeneName = newProteinFullName;
 	}
 }
