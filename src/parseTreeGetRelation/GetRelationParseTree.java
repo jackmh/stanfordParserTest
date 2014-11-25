@@ -1,6 +1,7 @@
 package parseTreeGetRelation;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.io.StringReader;
@@ -23,9 +24,9 @@ public class GetRelationParseTree {
 	// Three relation extraction rules.
 	private String[] relationPPIRule = new String[]
 			{
-				"/^NN.*/=GeneA .. (/^NN.*/=GeneB .. /^VB.*|^NN.*/=Relation)",
+				"/^NN.*/=GeneA .. (/^NN.*/=GeneB .. /^NN.*/=Relation)",
 				"/^NN.*/=GeneA .. (/^VB.*/=Relation .. /^NN.*|^CD.*/=GeneB)",
-				"/^VB.*|^NN.*/=Relation .. (/^NN.*/=GeneA .. /^NN.*/=GeneB)"
+				"/^NN.*/=Relation .. (/^NN.*/=GeneA .. /^NN.*/=GeneB)"
 			};
 	
 	public GetRelationParseTree() {
@@ -55,17 +56,17 @@ public class GetRelationParseTree {
 		
 		//parseTree.pennPrint();
 		
+		int k = 0;
 		System.out.println("=============================================");
 		System.out.println(sentence);
 		System.out.println(parseTree.taggedYield());
 		System.out.println(parseTree.taggedLabeledYield());
-		System.out.println("---------------------------------------------");
-		int k = 0;
+		
 		for (String RuleStr: relationPPIRule) {
 			relationExtract(parseTree, RuleStr, geneSet, relationKeySet, k);
 			k += 1;
 		}
-		System.out.println("=============================================\n\n");
+		System.out.println("=============================================\n");
 	}
 	
 	/*
@@ -80,13 +81,14 @@ public class GetRelationParseTree {
 				String RuleStr,
 				HashSet<String> geneSet,
 				HashSet<String> relationKeySet,
-				int k
+				int kRule
 				)
 	{
 		// 区别模式匹配中加括号的区别以及括号加在某个位置的区别
 		TregexPattern tregrex = TregexPattern.compile(RuleStr);
 		TregexMatcher mat = tregrex.matcher(parseTree);
 		String GeneAStr = "", GeneBStr = "", relationStr = "";
+		
 		while (mat.find()) {
 			GeneAStr = getStrFromTregexMatcher(mat, "GeneA");
 			GeneBStr = getStrFromTregexMatcher(mat, "GeneB");
@@ -94,28 +96,30 @@ public class GetRelationParseTree {
 			
 			if (geneSet.contains(GeneAStr) &&
 					geneSet.contains(GeneBStr) &&
+					GeneAStr.compareTo(GeneBStr) != 0 &&
 						relationKeySet.contains(relationStr)
 				)
 			{
-				switch (k)
+				switch (kRule)
 				{
 					case 0: // PPI
-						System.out.println("---------------------------------------------\nPPI:");
-						System.out.println(GeneAStr + "\t" + GeneBStr + "\t" + relationStr);
+						System.out.print("---------------------------------------------\nPPI: ");
+						System.out.println(GeneAStr + "  " + GeneBStr + "  " + relationStr);
 						break;
 					case 1: // PIP
-						System.out.println("---------------------------------------------\nPIP:");
-						System.out.println(GeneAStr + "\t" + relationStr + "\t" + GeneBStr);
+						System.out.print("---------------------------------------------\nPIP: ");
+						System.out.println(GeneAStr + "  " + relationStr + "  " + GeneBStr);
 						break;
 					case 2: // IPP
-						System.out.println("---------------------------------------------\nIPP:");
-						System.out.println(relationStr + "\t" + GeneAStr + "\t" + GeneBStr);
+						System.out.print("---------------------------------------------\nIPP: ");
+						System.out.println(relationStr + "  " + GeneAStr + "  " + GeneBStr);
 						break;
 					default:
 						break;
 				}
 			}
 		}
+		
 	}
 	
 	/*

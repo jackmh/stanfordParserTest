@@ -16,21 +16,14 @@ import java.io.StringReader;
 
 import org.w3c.dom.ranges.RangeException;
 
-
-import edu.stanford.nlp.process.Tokenizer;
-import edu.stanford.nlp.process.TokenizerFactory;
-import edu.stanford.nlp.process.CoreLabelTokenFactory;
 import parseTreeGetRelation.GetRelationParseTree;
 import process.DocumentPreprocessor;
 import proteinREG.proteinREC;
 
-import edu.stanford.nlp.process.PTBTokenizer;
-import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.HasWord;
 import edu.stanford.nlp.ling.Word;
 import edu.stanford.nlp.trees.*;
 import edu.stanford.nlp.trees.tregex.TregexMatcher;
-import edu.stanford.nlp.trees.tregex.TregexPattern;
 import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
 
 
@@ -43,6 +36,7 @@ class ParserDemo {
 	 * this demonstrates loading from the models jar file, which you therefore
 	 * need to include in the classpath for ParserDemo to work.
 	 */
+	public static boolean __DEBUG = true;
 	public static final String BaseDIR = "./proteinPI";
 	public static final String geneDictFilename = BaseDIR + File.separator + "0_dictOfAllMergeGeneProtein.name";
 	public static final String relateionKeyFilename = BaseDIR + File.separator + "0_relationKeys.name";
@@ -69,40 +63,10 @@ class ParserDemo {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		if (args.length > 0) {
-			demoDP(lp, args[0]);
-			// D:/keTiInHIT_FROM2014_08/testData/16043634
-			// D:/keTiInHIT_FROM2014_08/tools/stanford-parser-full-2014-06-16/data/english-onesent.txt
-		} else {
-			demoAPI(lp);
-		}
+		// D:/keTiInHIT_FROM2014_08/testData/16043634
+		// D:/keTiInHIT_FROM2014_08/tools/stanford-parser-full-2014-06-16/data/english-onesent.txt
+		demoAPI(lp);
 	}
-
-	/**
-	 * demoDP demonstrates turning a file into tokens and then parse trees. Note
-	 * that the trees are printed by calling pennPrint on the Tree object. It is
-	 * also possible to pass a PrintWriter to pennPrint if you want to capture
-	 * the output.
-	 */
-	public static void demoDP(LexicalizedParser lp, String filename) {
-		// This option shows loading, sentence-segmenting and tokenizing
-		// a file using DocumentPreprocessor.
-		TreebankLanguagePack tlp = new PennTreebankLanguagePack();
-		GrammaticalStructureFactory gsf = tlp.grammaticalStructureFactory();
-		// You could also create a tokenizer here (as below) and pass it
-		// to DocumentPreprocessor
-		for (List<HasWord> sentence : new DocumentPreprocessor(filename)) {
-			Tree parse = lp.apply(sentence);
-			parse.pennPrint();
-			System.out.println();
-
-			GrammaticalStructure gs = gsf.newGrammaticalStructure(parse);
-			Collection tdl = gs.typedDependenciesCCprocessed();
-			System.out.println(tdl);
-			System.out.println();
-		}
-	}
-
 	/**
 	 * demoAPI demonstrates other ways of calling the parser with already
 	 * tokenized text, or in some cases, raw text that needs to be tokenized as
@@ -117,7 +81,7 @@ class ParserDemo {
 		 * 1. 从文件中读取摘要,对摘要进行分句([.?!]).
 		 * 2. 对每句话进行蛋白质识别和标准化. 检索出至少包含2个蛋白质的句子
 		 * */
-		String testAbstractText = "D:/keTiInHIT_FROM2014_08/testData/16043634";
+		String testAbstractText = "D:/keTiInHIT_FROM2014_08/testData/17342744";
 		splitAbstractIntoSentence(testAbstractText);
 		
 //		// This option shows loading and using an explicit tokenizer
@@ -295,9 +259,11 @@ class ParserDemo {
  				proteinREC.proteinRecognition(sentence, allKeysSets, firstCharDict, geneSynProteinDict);
  				newAbstractText += proteinSent.getSentence() + " ";
  				if (proteinSent.getRecognitionProteinNum() >= 2) {
-	 				System.out.println(proteinSent.getOriginalSentence());
-	 				System.out.println(proteinSent.getSentence());
-	 				System.out.println();
+ 					if (__DEBUG == true) {
+ 						System.out.println();
+ 						System.out.println(proteinSent.getOriginalSentence());
+ 						System.out.println(proteinSent.getSentence());
+ 					}
 	 				GetRelationParseTree relationExtracTree = new GetRelationParseTree(proteinSent.getSentence());
 	 				relationExtracTree.getRelateion(lp, geneSet, relationKeySet);
  				}
@@ -306,12 +272,12 @@ class ParserDemo {
 			newAbstractText += "\n";
 		}
 		newAbstractText = newAbstractText.trim();
-		System.out.println("---------------------------------------------------------------");
-		System.out.println("---------------------------------------------------------------");
-		System.out.println(newAbstractText);
-		System.out.println("---------------------------------------------------------------");
-		System.out.println("---------------------------------------------------------------");
-		
+		if (__DEBUG == true)
+		{
+			System.out.println("\n---------------------------------------------------------------");
+			System.out.println(newAbstractText);
+			System.out.println("---------------------------------------------------------------");
+		}
 		/**************************************************************************************/
 		return newAbstractText;
 	}
