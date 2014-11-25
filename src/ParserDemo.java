@@ -20,6 +20,7 @@ import org.w3c.dom.ranges.RangeException;
 import edu.stanford.nlp.process.Tokenizer;
 import edu.stanford.nlp.process.TokenizerFactory;
 import edu.stanford.nlp.process.CoreLabelTokenFactory;
+import parseTreeGetRelation.GetRelationParseTree;
 import process.DocumentPreprocessor;
 import proteinREG.proteinREC;
 
@@ -61,11 +62,11 @@ class ParserDemo {
 	private static HashMap<String, String> firstCharDict = new HashMap<String, String>();
 	private static LexicalizedParser lp = LexicalizedParser
 			.loadModel("edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz");
+	
 	public static void main(String[] args) {
 		try {
 			init();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		if (args.length > 0) {
@@ -118,68 +119,66 @@ class ParserDemo {
 		 * */
 		String testAbstractText = "D:/keTiInHIT_FROM2014_08/testData/16043634";
 		splitAbstractIntoSentence(testAbstractText);
-
-		// This option shows loading and using an explicit tokenizer
-		String sent2 = "HSPB1 and HSPA4 interact with MME in C4-2 prostate cancer cells.";
-		//String sent2 = "TSNAX is a human protein that bears a homology to TSN and interacts with it.";
-		//String sent2 = "TSNAX is interacted with TSN.";
-		TokenizerFactory<CoreLabel> tokenizerFactory = PTBTokenizer.factory(
-				new CoreLabelTokenFactory(), "");
-		Tokenizer<CoreLabel> tok = tokenizerFactory
-				.getTokenizer(new StringReader(sent2));
-		List<CoreLabel> rawWords2 = tok.tokenize();
 		
-		
-		
-		Tree parse = lp.apply(rawWords2);
-
-		TreebankLanguagePack tlp = new PennTreebankLanguagePack();
-		GrammaticalStructureFactory gsf = tlp.grammaticalStructureFactory();
-		GrammaticalStructure gs = gsf.newGrammaticalStructure(parse);
-		List<TypedDependency> tdl = gs.typedDependenciesCCprocessed();
-		System.out.println(tdl);
-		System.out.println();
-		parse.pennPrint();
-
-		System.out.println();
-		System.out.println("=============================================");
-		System.out.println(sent2);
-		System.out.println(parse.taggedYield());
-		System.out.println(parse.taggedLabeledYield());
-		System.out.println("=============================================");
-		System.out.println();
-		// pattern test
-		String s1 = "/^VB.*|^NN.*/=Relation .. (/^NN.*/=GeneA .. /^NN.*/=GeneB)";
-		String s2 = "/^NN.*/=GeneA .. (/^VB.*/=Relation .. /^NN.*|^CD.*/=GeneB)";
-		String s3 = "/^NN.*/=GeneA .. (/^NN.*/=GeneB .. /^VB.*|^NN.*/=Relation)";
-		/*
-		 * 这里需要进一步处理：
-		 * 1. 判断A、C是否在Gene库中，B是否是关系词(访问Gene库文件、关系词库文件)
-		 * 2. 判断在三种情况下PPI、IPP、PIP三种情况下中I的词性，PP之间词的个数
-		 * 	  1> PIP：I的词性常为VP或NN
-		 *    2> PPI/IPP情况下I的词性，PP之间词的个数
-		 * 3. 否定词识别
-		 * */
-		// 区别模式匹配中加括号的区别以及括号加在某个位置的区别
-		
-		TregexPattern tregrex = TregexPattern.compile(s2);
-		TregexMatcher mat = tregrex.matcher(parse);
-		
-		String GeneAStr = "", GeneBStr = "", relationStr = "";
-		while (mat.find()) {
-			GeneAStr = getStrFromTregexMatcher(mat, "GeneA");
-			GeneBStr = getStrFromTregexMatcher(mat, "GeneB");
-			relationStr = getStrFromTregexMatcher(mat, "Relation");
-			if (geneSet.contains(GeneAStr) &&
-					geneSet.contains(GeneBStr) &&
-					relationKeySet.contains(relationStr)
-					)
-			{
-				System.out.println("=============================================");
-				System.out.println(GeneAStr + "\t" + GeneBStr + "\t" + relationStr);
-				System.out.println("=============================================");
-			}
-		}
+//		// This option shows loading and using an explicit tokenizer
+//		String sent2 = "HSPB1 and HSPA4 interact with MME in C4-2 prostate cancer cells.";
+//		//String sent2 = "TSNAX is a human protein that bears a homology to TSN and interacts with it.";
+//		//String sent2 = "TSNAX is interacted with TSN.";
+//		TokenizerFactory<CoreLabel> tokenizerFactory = PTBTokenizer.factory(
+//				new CoreLabelTokenFactory(), "");
+//		Tokenizer<CoreLabel> tok = tokenizerFactory
+//				.getTokenizer(new StringReader(sent2));
+//		List<CoreLabel> rawWords2 = tok.tokenize();
+//		
+//		Tree parse = lp.apply(rawWords2);
+//
+//		TreebankLanguagePack tlp = new PennTreebankLanguagePack();
+//		GrammaticalStructureFactory gsf = tlp.grammaticalStructureFactory();
+//		GrammaticalStructure gs = gsf.newGrammaticalStructure(parse);
+//		List<TypedDependency> tdl = gs.typedDependenciesCCprocessed();
+//		System.out.println(tdl);
+//		System.out.println();
+//		parse.pennPrint();
+//
+//		System.out.println();
+//		System.out.println("=============================================");
+//		System.out.println(sent2);
+//		System.out.println(parse.taggedYield());
+//		System.out.println(parse.taggedLabeledYield());
+//		System.out.println("=============================================");
+//		System.out.println();
+//		// pattern test
+//		String s1 = "/^VB.*|^NN.*/=Relation .. (/^NN.*/=GeneA .. /^NN.*/=GeneB)";
+//		String s2 = "/^NN.*/=GeneA .. (/^VB.*/=Relation .. /^NN.*|^CD.*/=GeneB)";
+//		String s3 = "/^NN.*/=GeneA .. (/^NN.*/=GeneB .. /^VB.*|^NN.*/=Relation)";
+//		/*
+//		 * 这里需要进一步处理：
+//		 * 1. 判断A、C是否在Gene库中，B是否是关系词(访问Gene库文件、关系词库文件)
+//		 * 2. 判断在三种情况下PPI、IPP、PIP三种情况下中I的词性，PP之间词的个数
+//		 * 	  1> PIP：I的词性常为VP或NN
+//		 *    2> PPI/IPP情况下I的词性，PP之间词的个数
+//		 * 3. 否定词识别
+//		 * */
+//		// 区别模式匹配中加括号的区别以及括号加在某个位置的区别
+//		
+//		TregexPattern tregrex = TregexPattern.compile(s2);
+//		TregexMatcher mat = tregrex.matcher(parse);
+//		
+//		String GeneAStr = "", GeneBStr = "", relationStr = "";
+//		while (mat.find()) {
+//			GeneAStr = getStrFromTregexMatcher(mat, "GeneA");
+//			GeneBStr = getStrFromTregexMatcher(mat, "GeneB");
+//			relationStr = getStrFromTregexMatcher(mat, "Relation");
+//			if (geneSet.contains(GeneAStr) &&
+//					geneSet.contains(GeneBStr) &&
+//					relationKeySet.contains(relationStr)
+//					)
+//			{
+//				System.out.println("=============================================");
+//				System.out.println(GeneAStr + "\t" + GeneBStr + "\t" + relationStr);
+//				System.out.println("=============================================");
+//			}
+//		}
 	}
 	
 	/*
@@ -299,6 +298,8 @@ class ParserDemo {
 	 				System.out.println(proteinSent.getOriginalSentence());
 	 				System.out.println(proteinSent.getSentence());
 	 				System.out.println();
+	 				GetRelationParseTree relationExtracTree = new GetRelationParseTree(proteinSent.getSentence());
+	 				relationExtracTree.getRelateion(lp, geneSet, relationKeySet);
  				}
 			}
 			newAbstractText = newAbstractText.trim();
