@@ -2,12 +2,12 @@ package proteinREG;
 
 /**
  * @author jack_mhdong
- * ÔÚÊ¶±ğµ°°×ÖÊÊÇ·ñ´æÔÚÓÚ¾ä×ÓÊ±£¬ÎÒÃÇ´æ´¢´Ë µ°°×ÖÊµÄÈ«³Æ ºÍ È«³Æ°üº¬µ¥´Ê³¤¶È
+ * åœ¨è¯†åˆ«è›‹ç™½è´¨æ˜¯å¦å­˜åœ¨äºå¥å­æ—¶ï¼Œæˆ‘ä»¬å­˜å‚¨æ­¤ è›‹ç™½è´¨çš„å…¨ç§° å’Œ å…¨ç§°åŒ…å«å•è¯é•¿åº¦
  */
 public class proteinEntity {
 	
 	private String originalProteinFullName;
-	private int Count;			//µ°°×ÖÊÈ«³ÆÖĞ°üº¬µ¥´Ê¸öÊı
+	private int Count;			//è›‹ç™½è´¨å…¨ç§°ä¸­åŒ…å«å•è¯ä¸ªæ•°
 	private String newProtein2GeneName;
 	
 	public proteinEntity() {

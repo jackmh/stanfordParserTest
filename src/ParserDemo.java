@@ -1,4 +1,3 @@
-
 import io.IOUtils;
 
 import java.util.ArrayList;
@@ -77,11 +76,11 @@ class ParserDemo {
 	 */
 	public static void demoAPI(LexicalizedParser lp) {		
 		/*
-		 * ÕâÀï¼ÓÉÏ
-		 * 1. ´ÓÎÄ¼şÖĞ¶ÁÈ¡ÕªÒª,¶ÔÕªÒª½øĞĞ·Ö¾ä([.?!]).
-		 * 2. ¶ÔÃ¿¾ä»°½øĞĞµ°°×ÖÊÊ¶±ğºÍ±ê×¼»¯. ¼ìË÷³öÖÁÉÙ°üº¬2¸öµ°°×ÖÊµÄ¾ä×Ó
+		 * è¿™é‡ŒåŠ ä¸Š
+		 * 1. ä»æ–‡ä»¶ä¸­è¯»å–æ‘˜è¦,å¯¹æ‘˜è¦è¿›è¡Œåˆ†å¥([.?!]).
+		 * 2. å¯¹æ¯å¥è¯è¿›è¡Œè›‹ç™½è´¨è¯†åˆ«å’Œæ ‡å‡†åŒ–. æ£€ç´¢å‡ºè‡³å°‘åŒ…å«2ä¸ªè›‹ç™½è´¨çš„å¥å­
 		 * */
-		String testAbstractText = "D:/keTiInHIT_FROM2014_08/testData/17342744";
+		String testAbstractText = BaseDIR + File.separator + "17342744";
 		splitAbstractIntoSentence(testAbstractText);
 		
 //		// This option shows loading and using an explicit tokenizer
@@ -116,14 +115,14 @@ class ParserDemo {
 //		String s2 = "/^NN.*/=GeneA .. (/^VB.*/=Relation .. /^NN.*|^CD.*/=GeneB)";
 //		String s3 = "/^NN.*/=GeneA .. (/^NN.*/=GeneB .. /^VB.*|^NN.*/=Relation)";
 //		/*
-//		 * ÕâÀïĞèÒª½øÒ»²½´¦Àí£º
-//		 * 1. ÅĞ¶ÏA¡¢CÊÇ·ñÔÚGene¿âÖĞ£¬BÊÇ·ñÊÇ¹ØÏµ´Ê(·ÃÎÊGene¿âÎÄ¼ş¡¢¹ØÏµ´Ê¿âÎÄ¼ş)
-//		 * 2. ÅĞ¶ÏÔÚÈıÖÖÇé¿öÏÂPPI¡¢IPP¡¢PIPÈıÖÖÇé¿öÏÂÖĞIµÄ´ÊĞÔ£¬PPÖ®¼ä´ÊµÄ¸öÊı
-//		 * 	  1> PIP£ºIµÄ´ÊĞÔ³£ÎªVP»òNN
-//		 *    2> PPI/IPPÇé¿öÏÂIµÄ´ÊĞÔ£¬PPÖ®¼ä´ÊµÄ¸öÊı
-//		 * 3. ·ñ¶¨´ÊÊ¶±ğ
+//		 * è¿™é‡Œéœ€è¦è¿›ä¸€æ­¥å¤„ç†ï¼š
+//		 * 1. åˆ¤æ–­Aã€Cæ˜¯å¦åœ¨Geneåº“ä¸­ï¼ŒBæ˜¯å¦æ˜¯å…³ç³»è¯(è®¿é—®Geneåº“æ–‡ä»¶ã€å…³ç³»è¯åº“æ–‡ä»¶)
+//		 * 2. åˆ¤æ–­åœ¨ä¸‰ç§æƒ…å†µä¸‹PPIã€IPPã€PIPä¸‰ç§æƒ…å†µä¸‹ä¸­Içš„è¯æ€§ï¼ŒPPä¹‹é—´è¯çš„ä¸ªæ•°
+//		 * 	  1> PIPï¼šIçš„è¯æ€§å¸¸ä¸ºVPæˆ–NN
+//		 *    2> PPI/IPPæƒ…å†µä¸‹Içš„è¯æ€§ï¼ŒPPä¹‹é—´è¯çš„ä¸ªæ•°
+//		 * 3. å¦å®šè¯è¯†åˆ«
 //		 * */
-//		// Çø±ğÄ£Ê½Æ¥ÅäÖĞ¼ÓÀ¨ºÅµÄÇø±ğÒÔ¼°À¨ºÅ¼ÓÔÚÄ³¸öÎ»ÖÃµÄÇø±ğ
+//		// åŒºåˆ«æ¨¡å¼åŒ¹é…ä¸­åŠ æ‹¬å·çš„åŒºåˆ«ä»¥åŠæ‹¬å·åŠ åœ¨æŸä¸ªä½ç½®çš„åŒºåˆ«
 //		
 //		TregexPattern tregrex = TregexPattern.compile(s2);
 //		TregexMatcher mat = tregrex.matcher(parse);
@@ -146,7 +145,7 @@ class ParserDemo {
 	}
 	
 	/*
-	 * ´ÓTregexMatcherÖĞ¸ù¾İTree½áµãÃû³ÆµÃµ½ÏàÓ¦µÄ½áµãÖµ
+	 * ä»TregexMatcherä¸­æ ¹æ®Treeç»“ç‚¹åç§°å¾—åˆ°ç›¸åº”çš„ç»“ç‚¹å€¼
 	 * */
 	public static String getStrFromTregexMatcher(TregexMatcher matcher, String nodeName) {
 		Tree gene = matcher.getNode(nodeName);
@@ -159,13 +158,13 @@ class ParserDemo {
 	} // static methods only
 	
 	/*
-	 * ´ÓÎÄ¼şÖĞ¶ÁÈ¡Gene¡¢¹ØÏµ´Ê, ½«¶ÁÈ¡³öÀ´µÄÊı¾İ·Ö±ğ´æÈëgeneSet, relationKeySet¼¯ºÏÖĞ
-	 * Í¬Ê±, ½¨Á¢Ò»¸öprotein-gene¹şÏ£±í, ½«¾ä×ÓÖĞ³öÏÖproteinµÄµ¥´Ê»ò´Ê×éÌæ»»³É¶ÔÓ¦µÄgene
+	 * ä»æ–‡ä»¶ä¸­è¯»å–Geneã€å…³ç³»è¯, å°†è¯»å–å‡ºæ¥çš„æ•°æ®åˆ†åˆ«å­˜å…¥geneSet, relationKeySeté›†åˆä¸­
+	 * åŒæ—¶, å»ºç«‹ä¸€ä¸ªprotein-geneå“ˆå¸Œè¡¨, å°†å¥å­ä¸­å‡ºç°proteinçš„å•è¯æˆ–è¯ç»„æ›¿æ¢æˆå¯¹åº”çš„gene
 	 * 
-	 * 1. ±£´æËùÓĞµÄGene, ´æ·ÅÓÚ¼¯ºÏgeneSetÖĞ
-	 * 2. ±£´æËùÓĞµÄµ°°×ÖÊ(´æ·ÅÓÚ¼¯ºÏallKeysSetsÖĞ);
-	 * 	     Èç¹ûµ°°×ÖÊproteinµ¥´Ê³¤¶È´óÓÚ1, Ôò±£´æÔÚ×ÖµäfirstCharDictÖĞ(key: µÚÒ»¸öµ¥´Ê, Values: protein1È«³Æ|protein2È«³Æ)
-	 * 3. ½¨Á¢protein-Gene¹şÏ£±í; (key: proteinÈ«³Æ; Values: GeneÃû)
+	 * 1. ä¿å­˜æ‰€æœ‰çš„Gene, å­˜æ”¾äºé›†åˆgeneSetä¸­
+	 * 2. ä¿å­˜æ‰€æœ‰çš„è›‹ç™½è´¨(å­˜æ”¾äºé›†åˆallKeysSetsä¸­);
+	 * 	     å¦‚æœè›‹ç™½è´¨proteinå•è¯é•¿åº¦å¤§äº1, åˆ™ä¿å­˜åœ¨å­—å…¸firstCharDictä¸­(key: ç¬¬ä¸€ä¸ªå•è¯, Values: protein1å…¨ç§°|protein2å…¨ç§°)
+	 * 3. å»ºç«‹protein-Geneå“ˆå¸Œè¡¨; (key: proteinå…¨ç§°; Values: Geneå)
 	 * */
 	private static void init() throws IOException, RangeException{
 		String[] arrs  = null;
@@ -216,17 +215,17 @@ class ParserDemo {
 			// Build gene dictionary
 			
 			/************************************************************
-			// ÕâÀï»á³öÏÖÄÚ´æ¹ı´óºÍºóÃæµÄ´úÂë³öÏÖÄÚ´æ³åÍ»ÎÊÌâ
+			// è¿™é‡Œä¼šå‡ºç°å†…å­˜è¿‡å¤§å’Œåé¢çš„ä»£ç å‡ºç°å†…å­˜å†²çªé—®é¢˜
 			*************************************************************/
 			geneSynProteinDict.put(protein, gene);
 		}
 	}
 	
 	/*
-	 * 1. ¶ÔÕªÒª½øĞĞ·Ö¾ä;
-	 * 2. Õë¶ÔÕªÒªÖĞµÄÃ¿Ò»¾ä, Ê¶±ğ³öÆäÖĞµÄµ°°×ÖÊ²¢¶Ôµ°°×ÖÊ½øĞĞ±ê×¼»¯
-	 * 3. ¶ÔÃ¿Ò»¾ä»°Ó¦ÓÃStanford Parser½øĞĞ½âÎö, µÃµ½Óï·¨Ê÷
-	 * 4. ÓÉ3µÃµ½µÄÓï·¨Ê÷, ½áºÏ¹ØÏµ´Ê¡¢gene¿âÕÒµ½ºòÑ¡µÄµ°°×ÖÊÏà»¥×÷ÓÃ¶Ô
+	 * 1. å¯¹æ‘˜è¦è¿›è¡Œåˆ†å¥;
+	 * 2. é’ˆå¯¹æ‘˜è¦ä¸­çš„æ¯ä¸€å¥, è¯†åˆ«å‡ºå…¶ä¸­çš„è›‹ç™½è´¨å¹¶å¯¹è›‹ç™½è´¨è¿›è¡Œæ ‡å‡†åŒ–
+	 * 3. å¯¹æ¯ä¸€å¥è¯åº”ç”¨Stanford Parserè¿›è¡Œè§£æ, å¾—åˆ°è¯­æ³•æ ‘
+	 * 4. ç”±3å¾—åˆ°çš„è¯­æ³•æ ‘, ç»“åˆå…³ç³»è¯ã€geneåº“æ‰¾åˆ°å€™é€‰çš„è›‹ç™½è´¨ç›¸äº’ä½œç”¨å¯¹
 	 * */
 	public static String splitAbstractIntoSentence(String abstractPath) {
 		Iterable<String> allLines = IOUtils.readLines(abstractPath);
