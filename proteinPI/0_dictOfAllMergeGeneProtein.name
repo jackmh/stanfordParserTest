@@ -6105,7 +6105,6 @@ endothelial cell-derived	LIPG
 cntn6	CNTN6
 ass	ASS1
 hs322b1a	GSTTP1
-vv	VV
 pum	MUC1
 rps3a_18_1305	RPS3AP44
 gpx1p2	GPX1P2
@@ -13127,7 +13126,6 @@ nop254	URB1
 ros	ROS1
 or51a11p	OR51A10P
 atpcl	ACLY
-regulated by	NLRP12
 mir3177	MIR3177
 isl-1	ISL1
 zkscan11	ZNF215
@@ -84773,7 +84771,6 @@ rasgef1b	RASGEF1B
 63-kda cytoskeleton-linking	CKAP4
 rpl19_4_388	RPL19P7
 ancca	ATAD2
-related to	RAPGEF5
 protein-udp acetylgalactosaminyltransferase	GALNT1
 loc100420172	LOC100420172
 cbas4	AMACR
@@ -85520,25 +85517,13 @@ rpl23_4_790	RPL23P8
 loc101930119	LOC101930119
 ba522l3.2	MTND2P2
 ba526k24.1	ESF1
-do	ART4
-dl	EDAR
-dm	DMPK
-dk	DOLK
-di	SLC4A1
-df	CFD
-dd	ATP2A2
 gsdm	GSDMA
-db	LEPR
-dc	DCX
 meiosis expressed gene	MEIG1
 anxa2p1	ANXA2P1
 anxa2p3	ANXA2P3
 anxa2p2	ANXA2P2
 loc100131048	LOC100131048
-dt	DST
 loc100131047	LOC100131047
-ds	DHPS
-dp	DSP
 beta-galactoside-binding lectin	LGALS1
 hom-tes-103	IFFO1
 chloride conductance regulatory	CLNS1A
@@ -130027,7 +130012,7 @@ loc100130209	LOC100130209
 xylosyltransferase i	XYLT1
 pxk	PXK
 hsi	AKR1B10
-tfiiib''	BDP1
+tfiiib	BDP1
 mageb6a	MAGEB6
 loc100130203	LOC100130203
 loc100130207	LOC100130207

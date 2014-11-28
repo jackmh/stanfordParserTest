@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
@@ -18,6 +19,7 @@ import org.w3c.dom.ranges.RangeException;
 import parseTreeGetRelation.GetRelationParseTree;
 import process.DocumentPreprocessor;
 import proteinREG.proteinREC;
+import config.config;
 
 import edu.stanford.nlp.ling.HasWord;
 import edu.stanford.nlp.ling.Word;
@@ -35,10 +37,9 @@ class ParserDemo {
 	 * this demonstrates loading from the models jar file, which you therefore
 	 * need to include in the classpath for ParserDemo to work.
 	 */
-	public static boolean __DEBUG = true;
-	public static final String BaseDIR = "./proteinPI";
-	public static final String geneDictFilename = BaseDIR + File.separator + "0_dictOfAllMergeGeneProtein.name";
-	public static final String relateionKeyFilename = BaseDIR + File.separator + "0_relationKeys.name";
+	
+	public static final String geneDictFilename = config.BaseDIR + File.separator + "0_dictOfAllMergeGeneProtein.name";
+	public static final String relateionKeyFilename = config.BaseDIR + File.separator + "0_relationKeys.name";
 	
 	//private static HashMap<String, String> geneSynProteinDict = new HashMap<String, String>();
 	
@@ -56,14 +57,14 @@ class ParserDemo {
 	private static LexicalizedParser lp = LexicalizedParser
 			.loadModel("edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz");
 	
+	private static String filenameExp = "17342744New";
+	
 	public static void main(String[] args) {
 		try {
 			init();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		// D:/keTiInHIT_FROM2014_08/testData/16043634
-		// D:/keTiInHIT_FROM2014_08/tools/stanford-parser-full-2014-06-16/data/english-onesent.txt
 		demoAPI(lp);
 	}
 	/**
@@ -80,68 +81,15 @@ class ParserDemo {
 		 * 1. 从文件中读取摘要,对摘要进行分句([.?!]).
 		 * 2. 对每句话进行蛋白质识别和标准化. 检索出至少包含2个蛋白质的句子
 		 * */
-		String testAbstractText = BaseDIR + File.separator + "17342744";
-		splitAbstractIntoSentence(testAbstractText);
-		
-//		// This option shows loading and using an explicit tokenizer
-//		String sent2 = "HSPB1 and HSPA4 interact with MME in C4-2 prostate cancer cells.";
-//		//String sent2 = "TSNAX is a human protein that bears a homology to TSN and interacts with it.";
-//		//String sent2 = "TSNAX is interacted with TSN.";
-//		TokenizerFactory<CoreLabel> tokenizerFactory = PTBTokenizer.factory(
-//				new CoreLabelTokenFactory(), "");
-//		Tokenizer<CoreLabel> tok = tokenizerFactory
-//				.getTokenizer(new StringReader(sent2));
-//		List<CoreLabel> rawWords2 = tok.tokenize();
-//		
-//		Tree parse = lp.apply(rawWords2);
-//
-//		TreebankLanguagePack tlp = new PennTreebankLanguagePack();
-//		GrammaticalStructureFactory gsf = tlp.grammaticalStructureFactory();
-//		GrammaticalStructure gs = gsf.newGrammaticalStructure(parse);
-//		List<TypedDependency> tdl = gs.typedDependenciesCCprocessed();
-//		System.out.println(tdl);
-//		System.out.println();
-//		parse.pennPrint();
-//
-//		System.out.println();
-//		System.out.println("=============================================");
-//		System.out.println(sent2);
-//		System.out.println(parse.taggedYield());
-//		System.out.println(parse.taggedLabeledYield());
-//		System.out.println("=============================================");
-//		System.out.println();
-//		// pattern test
-//		String s1 = "/^VB.*|^NN.*/=Relation .. (/^NN.*/=GeneA .. /^NN.*/=GeneB)";
-//		String s2 = "/^NN.*/=GeneA .. (/^VB.*/=Relation .. /^NN.*|^CD.*/=GeneB)";
-//		String s3 = "/^NN.*/=GeneA .. (/^NN.*/=GeneB .. /^VB.*|^NN.*/=Relation)";
-//		/*
-//		 * 这里需要进一步处理：
-//		 * 1. 判断A、C是否在Gene库中，B是否是关系词(访问Gene库文件、关系词库文件)
-//		 * 2. 判断在三种情况下PPI、IPP、PIP三种情况下中I的词性，PP之间词的个数
-//		 * 	  1> PIP：I的词性常为VP或NN
-//		 *    2> PPI/IPP情况下I的词性，PP之间词的个数
-//		 * 3. 否定词识别
-//		 * */
-//		// 区别模式匹配中加括号的区别以及括号加在某个位置的区别
-//		
-//		TregexPattern tregrex = TregexPattern.compile(s2);
-//		TregexMatcher mat = tregrex.matcher(parse);
-//		
-//		String GeneAStr = "", GeneBStr = "", relationStr = "";
-//		while (mat.find()) {
-//			GeneAStr = getStrFromTregexMatcher(mat, "GeneA");
-//			GeneBStr = getStrFromTregexMatcher(mat, "GeneB");
-//			relationStr = getStrFromTregexMatcher(mat, "Relation");
-//			if (geneSet.contains(GeneAStr) &&
-//					geneSet.contains(GeneBStr) &&
-//					relationKeySet.contains(relationStr)
-//					)
-//			{
-//				System.out.println("=============================================");
-//				System.out.println(GeneAStr + "\t" + GeneBStr + "\t" + relationStr);
-//				System.out.println("=============================================");
-//			}
-//		}
+		String testFileList[] = new String[]
+				{"16043634", "18062930", "12358744", "18424275", "20578993", "11278549"
+				};
+		for (String file: testFileList) {
+			setfilenameExp(file);
+			System.out.println(filenameExp);
+			String testAbstractText = config.BaseDIR + File.separator + filenameExp;
+			splitAbstractIntoSentence(testAbstractText);
+		}
 	}
 	
 	/*
@@ -152,6 +100,10 @@ class ParserDemo {
 		ArrayList<Word> valueList = gene.yieldWords();
 		String geneNameStr = valueList.get(0).toString();
 		return geneNameStr.trim();
+	}
+	
+	public static void setfilenameExp(String filename1) {
+		filenameExp = filename1;
 	}
 
 	private ParserDemo() {
@@ -216,6 +168,9 @@ class ParserDemo {
 			
 			/************************************************************
 			// 这里会出现内存过大和后面的代码出现内存冲突问题
+			 * 设置VM参数如下:
+			 * -Xms512M
+			 * -Xmx512M
 			*************************************************************/
 			geneSynProteinDict.put(protein, gene);
 		}
@@ -236,6 +191,9 @@ class ParserDemo {
 		 */
 		String newAbstractText = "";
 		List<List<HasWord>> sentenceListWord = new LinkedList<List<HasWord>>();
+		
+		String newFileText = filenameExp + "\n";
+		
 		for (String paragraph : allLines) {
 			if (paragraph.compareTo("") == 0 || paragraph.compareTo("\n") == 0)
 			{
@@ -258,20 +216,33 @@ class ParserDemo {
  				proteinREC.proteinRecognition(sentence, allKeysSets, firstCharDict, geneSynProteinDict);
  				newAbstractText += proteinSent.getSentence() + " ";
  				if (proteinSent.getRecognitionProteinNum() >= 2) {
- 					if (__DEBUG == true) {
+ 					if (config.__DEBUG == true) {
  						System.out.println();
  						System.out.println(proteinSent.getOriginalSentence());
  						System.out.println(proteinSent.getSentence());
  					}
+ 					newFileText += proteinSent.getOriginalSentence() + "\n" + proteinSent.getSentence() + "\n";
 	 				GetRelationParseTree relationExtracTree = new GetRelationParseTree(proteinSent.getSentence());
-	 				relationExtracTree.getRelateion(lp, geneSet, relationKeySet);
+	 				newFileText += relationExtracTree.getRelateion(lp, geneSet, relationKeySet) + "\n";
  				}
 			}
 			newAbstractText = newAbstractText.trim();
 			newAbstractText += "\n";
 		}
+		if (config.__WriteIntoFileFlag) {
+			String newfilename = config.DstDIR + File.separator + filenameExp;
+			try {
+				FileWriter writer = new FileWriter(newfilename);
+				writer.write(newFileText);
+				writer.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
 		newAbstractText = newAbstractText.trim();
-		if (__DEBUG == true)
+		if (config.__DEBUG == true)
 		{
 			System.out.println("\n---------------------------------------------------------------");
 			System.out.println(newAbstractText);

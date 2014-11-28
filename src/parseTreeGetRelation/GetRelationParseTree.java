@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.io.StringReader;
 
+import config.config;
+
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.Word;
 import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
@@ -28,6 +30,13 @@ public class GetRelationParseTree {
 				"/^NN.*/=Relation .. (/^NN.*/=GeneA .. /^NN.*/=GeneB)"
 			};
 	
+	private String[] negativeRelationPPIRule = new String[]
+			{
+				"/^NN.*/=GeneA .. (/^NN.*/=GeneB .. /^NN.*/=Relation)",
+				"/^NN.*/=GeneA .. (/^VB.*/=Relation .. /^NN.*|^CD.*/=GeneB)",
+				"/^NN.*/=Relation .. (/^NN.*/=GeneA .. /^NN.*/=GeneB)"
+			};
+	
 	public GetRelationParseTree() {
 		super();
 		this.sentence = "";
@@ -38,11 +47,13 @@ public class GetRelationParseTree {
 		this.sentence = sentence;
 	}
 	
-	// Çø±ğÄ£Ê½Æ¥ÅäÖĞ¼ÓÀ¨ºÅµÄÇø±ğÒÔ¼°À¨ºÅ¼ÓÔÚÄ³¸öÎ»ÖÃµÄÇø±ğ
-	public void getRelateion(LexicalizedParser lParser,
+	// åŒºåˆ«æ¨¡å¼åŒ¹é…ä¸­åŠ æ‹¬å·çš„åŒºåˆ«ä»¥åŠæ‹¬å·åŠ åœ¨æŸä¸ªä½ç½®çš„åŒºåˆ«
+	public String getRelateion(LexicalizedParser lParser,
 			HashSet<String> geneSet,
-			HashSet<String> relationKeySet)
-		{
+			HashSet<String> relationKeySet
+			)
+	{
+		String newSentenceText = "";
 		TokenizerFactory<CoreLabel> tokenizerFactory = PTBTokenizer.factory(
 				new CoreLabelTokenFactory(), "");
 		Tokenizer<CoreLabel> tok = tokenizerFactory
@@ -50,40 +61,52 @@ public class GetRelationParseTree {
 
 		List<CoreLabel> rawWords = tok.tokenize();
 		
-		// ½âÎö³ÉÓï·¨Ê÷±È½ÏºÄÊ±
+		// è§£ææˆè¯­æ³•æ ‘æ¯”è¾ƒè€—æ—¶
 		Tree parseTree = lParser.apply(rawWords);
 		
 		//parseTree.pennPrint();
 		
 		int k = 0;
-		System.out.println("=============================================");
-		System.out.println(sentence);
-		System.out.println(parseTree.taggedYield());
-		System.out.println(parseTree.taggedLabeledYield());
+		newSentenceText += "=============================================\n";
+		newSentenceText += parseTree.taggedYield() + "\n";
 		
+		if (config.__DEBUG == true) {
+			System.out.println(parseTree.taggedYield());
+			System.out.println(parseTree.taggedLabeledYield());
+		}
 		for (String RuleStr: relationPPIRule) {
-			relationExtract(parseTree, RuleStr, geneSet, relationKeySet, k);
+			String textStr = relationExtract(parseTree, RuleStr, geneSet, relationKeySet, k);
+			newSentenceText += textStr;
 			k += 1;
 		}
-		System.out.println("=============================================\n");
+		newSentenceText += "=============================================\n";
+		return newSentenceText;
 	}
 	
 	/*
-	 * ÕâÀïĞèÒª½øÒ»²½´¦Àí£º
-	 * 1. ÅĞ¶ÏA¡¢CÊÇ·ñÔÚGene¿âÖĞ£¬BÊÇ·ñÊÇ¹ØÏµ´Ê(·ÃÎÊGene¿âÎÄ¼ş¡¢¹ØÏµ´Ê¿âÎÄ¼ş)
-	 * 2. ÅĞ¶ÏÔÚÈıÖÖÇé¿öÏÂPPI¡¢IPP¡¢PIPÈıÖÖÇé¿öÏÂÖĞIµÄ´ÊĞÔ£¬PPÖ®¼ä´ÊµÄ¸öÊı
-	 * 	  1> PIP£ºIµÄ´ÊĞÔ³£ÎªVP»òNN
-	 *    2> PPI/IPPÇé¿öÏÂIµÄ´ÊĞÔ£¬PPÖ®¼ä´ÊµÄ¸öÊı
-	 * 3. ·ñ¶¨´ÊÊ¶±ğ
+	 * è¿™é‡Œéœ€è¦è¿›ä¸€æ­¥å¤„ç†ï¼š
+	 * 1. åˆ¤æ–­Aã€Cæ˜¯å¦åœ¨Geneåº“ä¸­ï¼ŒBæ˜¯å¦æ˜¯å…³ç³»è¯(è®¿é—®Geneåº“æ–‡ä»¶ã€å…³ç³»è¯åº“æ–‡ä»¶)
+	 * 2. åˆ¤æ–­åœ¨ä¸‰ç§æƒ…å†µä¸‹PPIã€IPPã€PIPä¸‰ç§æƒ…å†µä¸‹ä¸­Içš„è¯æ€§ï¼ŒPPä¹‹é—´è¯çš„ä¸ªæ•°
+	 * 	  1> PIPï¼šIçš„è¯æ€§å¸¸ä¸ºVPæˆ–NN
+	 *    2> PPI/IPPæƒ…å†µä¸‹Içš„è¯æ€§ï¼ŒPPä¹‹é—´è¯çš„ä¸ªæ•°
+***************************************************************    
+	 * 3. å¦å®šè¯è¯†åˆ«
+	 *	 two proteins, a relation keyword, a negation keyword.
+			For example:
+				PIP. A is not interacted with B.
+				PPI. A and B is not interaction.
+				IPP. not interaction A and B.
+***************************************************************
 	 * */
-	private void relationExtract(Tree parseTree,
+	private String relationExtract(Tree parseTree,
 				String RuleStr,
 				HashSet<String> geneSet,
 				HashSet<String> relationKeySet,
 				int kRule
 				)
 	{
-		// Çø±ğÄ£Ê½Æ¥ÅäÖĞ¼ÓÀ¨ºÅµÄÇø±ğÒÔ¼°À¨ºÅ¼ÓÔÚÄ³¸öÎ»ÖÃµÄÇø±ğ
+		String textStr = "";
+		// åŒºåˆ«æ¨¡å¼åŒ¹é…ä¸­åŠ æ‹¬å·çš„åŒºåˆ«ä»¥åŠæ‹¬å·åŠ åœ¨æŸä¸ªä½ç½®çš„åŒºåˆ«
 		TregexPattern tregrex = TregexPattern.compile(RuleStr);
 		TregexMatcher mat = tregrex.matcher(parseTree);
 		String GeneAStr = "", GeneBStr = "", relationStr = "";
@@ -102,27 +125,27 @@ public class GetRelationParseTree {
 				switch (kRule)
 				{
 					case 0: // PPI
-						System.out.print("---------------------------------------------\nPPI: ");
-						System.out.println(GeneAStr + "  " + GeneBStr + "  " + relationStr);
+						textStr += "---------------------------------------------\nPPI: ";
+						textStr +=  GeneAStr + "  " + GeneBStr + "  " + relationStr + "\n";
 						break;
 					case 1: // PIP
-						System.out.print("---------------------------------------------\nPIP: ");
-						System.out.println(GeneAStr + "  " + relationStr + "  " + GeneBStr);
+						textStr += "---------------------------------------------\nPIP: ";
+						textStr +=  GeneAStr + "  " + relationStr + "  " + GeneBStr + "\n";
 						break;
 					case 2: // IPP
-						System.out.print("---------------------------------------------\nIPP: ");
-						System.out.println(relationStr + "  " + GeneAStr + "  " + GeneBStr);
+						textStr += "---------------------------------------------\nIPP: ";
+						textStr +=  relationStr + "  " + GeneAStr + "  " + GeneBStr + "\n";
 						break;
 					default:
 						break;
 				}
 			}
 		}
-		
+		return textStr;		
 	}
 	
 	/*
-	 * ´ÓTregexMatcherÖĞ¸ù¾İTree½áµãÃû³ÆµÃµ½ÏàÓ¦µÄ½áµãÖµ
+	 * ä»TregexMatcherä¸­æ ¹æ®Treeç»“ç‚¹åç§°å¾—åˆ°ç›¸åº”çš„ç»“ç‚¹å€¼
 	 * */
 	private String getStrFromTregexMatcher(TregexMatcher matcher, String nodeName) {
 		Tree gene = matcher.getNode(nodeName);
