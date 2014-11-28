@@ -80,6 +80,7 @@ class ParserDemo {
 		 * 这里加上
 		 * 1. 从文件中读取摘要,对摘要进行分句([.?!]).
 		 * 2. 对每句话进行蛋白质识别和标准化. 检索出至少包含2个蛋白质的句子
+		 * a test for git
 		 * */
 		String testFileList[] = new String[]
 				{
