@@ -1,14 +1,20 @@
 package parseTreeGetRelation;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.io.StringReader;
+
+import proteinREG.proteinREC;
 
 import config.config;
 
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.Word;
+import edu.stanford.nlp.ling.tokensregex.types.Value;
 import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
 import edu.stanford.nlp.process.CoreLabelTokenFactory;
 import edu.stanford.nlp.process.PTBTokenizer;
@@ -50,7 +56,8 @@ public class GetRelationParseTree {
 	// 区别模式匹配中加括号的区别以及括号加在某个位置的区别
 	public String getRelateion(LexicalizedParser lParser,
 			HashSet<String> geneSet,
-			HashSet<String> relationKeySet
+			HashSet<String> relationKeySet,
+			proteinREC proteinSent
 			)
 	{
 		String newSentenceText = "";
@@ -74,8 +81,11 @@ public class GetRelationParseTree {
 			System.out.println(parseTree.taggedYield());
 			System.out.println(parseTree.taggedLabeledYield());
 		}
+		newSentenceText += "---------------------------------------------\nPPI: ";
+		newSentenceText +=  proteinSent.getStringOfRecognitionProtein() + " ===>> "
+				+ proteinSent.getStringOfRelationWords() + "\n";
 		for (String RuleStr: relationPPIRule) {
-			String textStr = relationExtract(parseTree, RuleStr, geneSet, relationKeySet, k);
+			String textStr = relationExtract(parseTree, RuleStr, geneSet, relationKeySet, k, proteinSent);
 			newSentenceText += textStr;
 			k += 1;
 		}
@@ -102,7 +112,8 @@ public class GetRelationParseTree {
 				String RuleStr,
 				HashSet<String> geneSet,
 				HashSet<String> relationKeySet,
-				int kRule
+				int kRule,
+				proteinREC proteinSent
 				)
 	{
 		String textStr = "";
@@ -122,26 +133,73 @@ public class GetRelationParseTree {
 						relationKeySet.contains(relationStr)
 				)
 			{
+				textStr += "---------------------------------------------\n";
+				boolean flag = isNegativeWordsInSentence(proteinSent, relationStr);
+				if (flag == true)
+				{
+					textStr += "False PPI: ";
+				}
+				else {
+					textStr += "PPI: ";
+				}
+				
 				switch (kRule)
 				{
 					case 0: // PPI
-						textStr += "---------------------------------------------\nPPI: ";
-						textStr +=  GeneAStr + "  " + GeneBStr + "  " + relationStr + "\n";
+						textStr += GeneAStr + "  " + GeneBStr + "  " + relationStr + "\n";
 						break;
 					case 1: // PIP
-						textStr += "---------------------------------------------\nPIP: ";
 						textStr +=  GeneAStr + "  " + relationStr + "  " + GeneBStr + "\n";
 						break;
 					case 2: // IPP
-						textStr += "---------------------------------------------\nIPP: ";
 						textStr +=  relationStr + "  " + GeneAStr + "  " + GeneBStr + "\n";
 						break;
 					default:
 						break;
 				}
+				
+				if (flag == true) {
+					textStr += proteinSent.getStringOfNegativeWords() + "\n";
+				}
 			}
 		}
 		return textStr;		
+	}
+	
+/***************************************************************    
+	 * 3. 否定词识别处理
+	 *	 two proteins, a relation keyword, a negation keyword.
+			For example:
+				PIP. A is not interacted with B.
+				PPI. A and B is not interaction.
+				IPP. not interaction A and B.
+***************************************************************/
+	private boolean isNegativeWordsInSentence(
+			proteinREC proteinSent,
+			String relationStr
+			)
+	{
+		int relationIndex = proteinSent.getLocationOfSpecifiedWords(proteinSent.getRelationWordsMap(), relationStr);
+		
+		if (proteinSent.getNumberOfNegativeWords() > 0) {
+		
+			HashMap<Integer, String> negativeWordsMap = proteinSent.getNegativeWordsMap();
+			
+			Set<Integer> keySet = negativeWordsMap.keySet();
+			List<Integer> keyList = new ArrayList<Integer>(keySet);
+			Collections.sort(keyList);
+			
+			for (int key: keyList) {
+				String value = negativeWordsMap.get(key);
+				if (value.compareTo("not") == 0 || value.compareTo("no") == 0) {
+					if (key < relationIndex) {
+						return true;
+					}
+				}
+			}
+		}
+		
+		return false;
 	}
 	
 	/*
