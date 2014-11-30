@@ -15414,7 +15414,6 @@ wdr70	WDR70
 neuronal pas2	NPAS2
 neuronal pas4	NPAS4
 tcrbv5s5	TRBV5-5
-1	SLC25A4
 tcrbv5s7	TRBV5-7
 tcrbv5s6	TRBV5-6
 tcrbv5s1	TRBV5-1
@@ -17523,7 +17522,6 @@ laforin-interacting protein	EPM2AIP1
 loc100421483	LOC100421483
 grp170	HYOU1
 smp2	LPIN3
-2	SLC25A6
 sdr42e1p1	SDR42E1P1
 oncogene rck	DDX6
 rpl23ap12	RPL23AP12
@@ -54245,7 +54243,6 @@ lycat	LCLAT1
 krt33b	KRT33B
 krt33a	KRT33A
 yts	YARS
-3	SLC25A6
 p202	TP53BP1
 snord62b	SNORD62B
 nicotinic acid riboside	NMRK2

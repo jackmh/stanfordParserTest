@@ -36,13 +36,6 @@ public class GetRelationParseTree {
 				"/^NN.*/=Relation .. (/^NN.*/=GeneA .. /^NN.*/=GeneB)"
 			};
 	
-	private String[] negativeRelationPPIRule = new String[]
-			{
-				"/^NN.*/=GeneA .. (/^NN.*/=GeneB .. /^NN.*/=Relation)",
-				"/^NN.*/=GeneA .. (/^VB.*/=Relation .. /^NN.*|^CD.*/=GeneB)",
-				"/^NN.*/=Relation .. (/^NN.*/=GeneA .. /^NN.*/=GeneB)"
-			};
-	
 	public GetRelationParseTree() {
 		super();
 		this.sentence = "";
@@ -130,11 +123,11 @@ public class GetRelationParseTree {
 			if (geneSet.contains(GeneAStr) &&
 					geneSet.contains(GeneBStr) &&
 					GeneAStr.compareTo(GeneBStr) != 0 &&
-						relationKeySet.contains(relationStr)
+						relationKeySet.contains(relationStr.toLowerCase())
 				)
 			{
 				textStr += "---------------------------------------------\n";
-				boolean flag = isNegativeWordsInSentence(proteinSent, relationStr);
+				boolean flag = isNegativeWordsInSentence(proteinSent, kRule, relationStr, GeneAStr, GeneBStr);
 				if (flag == true)
 				{
 					textStr += "False PPI: ";
@@ -146,21 +139,22 @@ public class GetRelationParseTree {
 				switch (kRule)
 				{
 					case 0: // PPI
-						textStr += GeneAStr + "  " + GeneBStr + "  " + relationStr + "\n";
+						textStr += GeneAStr + "  " + GeneBStr + "  " + relationStr;
 						break;
 					case 1: // PIP
-						textStr +=  GeneAStr + "  " + relationStr + "  " + GeneBStr + "\n";
+						textStr +=  GeneAStr + "  " + relationStr + "  " + GeneBStr;
 						break;
 					case 2: // IPP
-						textStr +=  relationStr + "  " + GeneAStr + "  " + GeneBStr + "\n";
+						textStr +=  relationStr + "  " + GeneAStr + "  " + GeneBStr;
 						break;
 					default:
 						break;
 				}
 				
 				if (flag == true) {
-					textStr += proteinSent.getStringOfNegativeWords() + "\n";
+					textStr += " ===>> " + proteinSent.getStringOfNegativeWords();
 				}
+				textStr += "\n";
 			}
 		}
 		return textStr;		
@@ -176,11 +170,54 @@ public class GetRelationParseTree {
 ***************************************************************/
 	private boolean isNegativeWordsInSentence(
 			proteinREC proteinSent,
-			String relationStr
+			int kRule,
+			String relationStr,
+			String GeneAStr,
+			String GeneBStr
 			)
 	{
-		int relationIndex = proteinSent.getLocationOfSpecifiedWords(proteinSent.getRelationWordsMap(), relationStr);
+		/**
+		 * Three Rules: PIP, PPI, IPP, when there is a negative between the interation of PP
+		 * 1. if PNIP (Protein .. Negative .. relation .. Protein), PINP, NPIP
+		 * 		P and P is not interaction. (Negative word is between the first Protein and interaction words)
+		 * 		for example:
+		 * 			1> proteinA is not interacted with ProteinB.
+		 *   			==>> PA I PB;  ===>> not I ===>> PA I PB is false;
+		 * 			2> ProteinA and ProteinB is not interacted with ProteinC.
+		 *    			==>> PA I PC; PB I PC; ===>> not I ===>> PA I PC is false; PB I PC is false;
+		 *  		3> ProteinA is interacted with ProteinB, not with ProteinC.
+		 *  			==>> PA I PB; PA I PC; ===>> not PC  ===>> PA I PC is false;
+		 *   			===>> PA I PB
+		 *  		4> ProteinA and ProteinB is interacted with ProteinC, not with ProteinD and ProteinE.
+		 *  			==>> PA I PC; PA I PD; PA I PE; PB I PC; PB I PD; PB I PE;
+		 *  			===>> not PD; not PE  ===>> PA I PD is false; PA I PE is false; PB I PD is false; PB I PE is false; 
+		 *   			===>> PA I PC; PB I PC;
+		 *   
+		 * 2. if NPPI (Negative .. Protein .. relation .. Protein), PNPI, PPNI
+		 * 		not P and P interaction. (Negative word is ahead of the first protein)
+		 * 		for example:
+		 * 			1> not ProteinA and ProteinB interaction.
+		 * 			2> not ProteinA or ProteinB and ProteinC interaction.
+		 * 			3> not ProteinA is interacted with ProteinB.
+		 * 			4> not ProteinA is interacted with ProteinB and ProteinC.
+		 *
+		 * 3. if NIPP (Negative .. relation .. Protein .. Protein)
+		 * 		not interaction P and P. (Negative word is ahead of the relation word)
+		 * 		for example:
+		 * 			1> not interaction ProteinA and ProteinB.
+		 * 
+		 * 4. the other situations:
+		 * 		1> Neither ProteinA nor ProteinB is interacted with ProteinC.
+		 * 		2> Neither ProteinA and ProteinB nor ProteinC with ProteinD is interacted with ProteinE.
+		 */
+		int relationLocation = proteinSent.getLocationOfSpecifiedWords(proteinSent.getRelationWordsMap(), relationStr);
+		boolean relationNegative = false;
+		int GeneALocation = proteinSent.getLocationOfRecognitionProtein(GeneAStr);
+		boolean geneANegative = false;
+		int GeneBLocation = proteinSent.getLocationOfRecognitionProtein(GeneBStr);
+		boolean geneBNegative = false;
 		
+		// not, no, n't
 		if (proteinSent.getNumberOfNegativeWords() > 0) {
 		
 			HashMap<Integer, String> negativeWordsMap = proteinSent.getNegativeWordsMap();
@@ -189,19 +226,48 @@ public class GetRelationParseTree {
 			List<Integer> keyList = new ArrayList<Integer>(keySet);
 			Collections.sort(keyList);
 			
-			for (int key: keyList) {
-				String value = negativeWordsMap.get(key);
-				if (value.compareTo("not") == 0 || value.compareTo("no") == 0) {
-					if (key < relationIndex) {
-						return true;
+			for (int NegativeLoc: keyList) {
+				String value = negativeWordsMap.get(NegativeLoc);
+				if (value.compareTo("not") == 0 || value.compareTo("no") == 0 || value.compareTo("n't") == 0)
+				{
+					switch (kRule) {
+						case 0: // PPI
+							if (GeneBLocation < NegativeLoc && NegativeLoc < relationLocation) // PPNI
+								relationNegative = true;
+							if (GeneALocation < NegativeLoc && NegativeLoc < GeneBLocation) // PNPI
+								geneBNegative = true;
+							if (NegativeLoc < GeneALocation) // NPPI
+								geneANegative = true;
+							break;
+						case 1: // PIP
+							if (GeneALocation < NegativeLoc && NegativeLoc < relationLocation) // PNIP
+								relationNegative = true;
+							if (relationLocation < NegativeLoc && NegativeLoc < GeneBLocation) // PINP
+								geneBNegative = true;
+							if (NegativeLoc < GeneALocation) // NPIP
+								geneANegative = true;
+							break;
+						case 2: // IPP
+							if (NegativeLoc < relationLocation) // NIPP
+								relationNegative = true;
+							if (GeneALocation < NegativeLoc && NegativeLoc < GeneBLocation) // IPNP
+								geneBNegative = true;
+							if (relationLocation < NegativeLoc && NegativeLoc < GeneALocation) // INPP
+								geneANegative = true;
+							break;
 					}
+					return relationNegative ^ geneANegative ^ geneBNegative;
+					
+				} // 0:PPI; 1: PIP; 2: IPP
+				else if (value.compareTo("neither") == 0)
+				{
+					; //deal with neither nor sentence.
 				}
 			}
 		}
-		
-		return false;
+		return relationNegative ^ geneANegative ^ geneBNegative;
 	}
-	
+		
 	/*
 	 * 从TregexMatcher中根据Tree结点名称得到相应的结点值
 	 * */

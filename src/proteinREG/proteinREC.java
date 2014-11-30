@@ -106,7 +106,7 @@ public class proteinREC {
 		 *    
 		 ***********************************************************************************/
 		HashSet<String> negativeWordsSet = new HashSet<String>(
-				Arrays.asList("no", "not", "neither", "nor"));
+				Arrays.asList("no", "not", "neither", "nor", "n't"));
 		
 		String key, word;
 		boolean relationTestFlag = false;
@@ -363,6 +363,27 @@ public class proteinREC {
 	public int getNumberOfRecognitionProteins() {
 		return proteinMap.size();
 	}
+	
+	/**
+	 * get the location of recognition protein in current HashMap
+	 * @param protein
+	 * @return
+	 */
+	public int getLocationOfRecognitionProtein(String protein) {
+		Set<Integer> keySet = proteinMap.keySet();
+		List<Integer> keyList = new ArrayList<Integer>(keySet);
+		Collections.sort(keyList);
+		
+		for (int key : keyList) {
+			proteinEntity valueEntity = proteinMap.get(key);
+			String value = valueEntity.getNewProteinFullName();
+			if (protein.compareTo(value) == 0) {
+				return key;
+			}
+		}
+		return -1;
+	}
+	
 	/**
 	 * Print all the recognition Proteins and the corresponding location in current line.
 	 */
