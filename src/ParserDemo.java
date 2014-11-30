@@ -83,8 +83,8 @@ class ParserDemo {
 		 * */
 		String testFileList[] = new String[]
 				{
-					"16043634", "18062930", "12358744", "18424275", "20578993", "11278549"
-				}; // "17342744New"
+				"12358744"
+				}; // "17342744New" "16043634", "18062930", "18424275", "20578993", "11278549" 
 		for (String file: testFileList) {
 			setfilenameExp(file);
 			System.out.println(filenameExp);

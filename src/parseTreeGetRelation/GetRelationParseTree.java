@@ -13,6 +13,7 @@ import proteinREG.proteinREC;
 import config.config;
 
 import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.ling.HasWord;
 import edu.stanford.nlp.ling.Word;
 import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
 import edu.stanford.nlp.process.CoreLabelTokenFactory;
@@ -32,7 +33,8 @@ public class GetRelationParseTree {
 			{
 				"/^NN.*/=GeneA .. (/^NN.*/=GeneB .. /^NN.*/=Relation)",
 				"/^NN.*/=GeneA .. (/^VB.*/=Relation .. /^NN.*|^CD.*/=GeneB)",
-				"/^NN.*/=Relation .. (/^NN.*/=GeneA .. /^NN.*/=GeneB)"
+				"/^NN.*/=Relation .. (/^NN.*/=GeneA .. /^NN.*/=GeneB)",
+				"/^NN.*/=GeneA .. ((/^VB.*/=Verb .. /^NN.*/=Relation) .. /^NN.*|^CD.*/=GeneB)"
 			};
 	
 	public GetRelationParseTree() {
@@ -47,17 +49,22 @@ public class GetRelationParseTree {
 	
 	// 区别模式匹配中加括号的区别以及括号加在某个位置的区别
 	public String getRelateion(LexicalizedParser lParser,
+	//		List<HasWord> sentence22, 
 			HashSet<String> geneSet,
 			HashSet<String> relationKeySet,
 			proteinREC proteinSent
 			)
 	{
 		String newSentenceText = "";
+/***********************************************************************************
+ * 识别变换之后可以修改此BUG***** 这里分词有问题 
+ * 
+*********************************** MME. ---> MME, . || not MME.  *****************************/
+		
 		TokenizerFactory<CoreLabel> tokenizerFactory = PTBTokenizer.factory(
 				new CoreLabelTokenFactory(), "");
 		Tokenizer<CoreLabel> tok = tokenizerFactory
 				.getTokenizer(new StringReader(sentence));
-
 		List<CoreLabel> rawWords = tok.tokenize();
 		
 		// 解析成语法树比较耗时
@@ -65,17 +72,18 @@ public class GetRelationParseTree {
 		
 		//parseTree.pennPrint();
 		
-		int k = 0;
 		newSentenceText += "=============================================\n";
 		newSentenceText += parseTree.taggedYield() + "\n";
 		
 		if (config.__DEBUG == true) {
+			System.out.println(rawWords);
 			System.out.println(parseTree.taggedYield());
 			System.out.println(parseTree.taggedLabeledYield());
 		}
-		newSentenceText += "---------------------------------------------\nPPI: ";
+		newSentenceText += "---------------------------------------------\n";
 		newSentenceText +=  proteinSent.getStringOfRecognitionProtein() + " ===>> "
 				+ proteinSent.getStringOfRelationWords() + "\n";
+		int k = 0;
 		for (String RuleStr: relationPPIRule) {
 			String textStr = relationExtract(parseTree, RuleStr, geneSet, relationKeySet, k, proteinSent);
 			newSentenceText += textStr;
@@ -110,7 +118,7 @@ public class GetRelationParseTree {
 		// Attention: Pay attention to the location of bracket
 		TregexPattern tregrex = TregexPattern.compile(RuleStr);
 		TregexMatcher mat = tregrex.matcher(parseTree);
-		String GeneAStr = "", GeneBStr = "", relationStr = "";
+		String GeneAStr = "", GeneBStr = "", relationStr = "", verbStr = "";
 		
 		while (mat.find()) {
 			GeneAStr = getStrFromTregexMatcher(mat, "GeneA");
@@ -127,22 +135,28 @@ public class GetRelationParseTree {
 				boolean flag = isNegativeWordsInSentence(proteinSent, kRule, relationStr, GeneAStr, GeneBStr);
 				if (flag == true)
 				{
-					textStr += "False PPI: ";
-				}
-				else {
-					textStr += "PPI: ";
+					textStr += "False ";
 				}
 				
 				switch (kRule)
 				{
 					case 0: // PPI
-						textStr += GeneAStr + "  " + GeneBStr + "  " + relationStr;
+						textStr += "PPI: " + GeneAStr + "  " + GeneBStr + "  " + relationStr;
 						break;
 					case 1: // PIP
-						textStr +=  GeneAStr + "  " + relationStr + "  " + GeneBStr;
+						textStr +=  "PIP: " + GeneAStr + "  " + relationStr + "  " + GeneBStr;
 						break;
 					case 2: // IPP
-						textStr +=  relationStr + "  " + GeneAStr + "  " + GeneBStr;
+						textStr +=  "IPP: " + relationStr + "  " + GeneAStr + "  " + GeneBStr;
+						break;
+/************************************************************
+ * TSNAX is a SMN1 the Translin-containing RNA binding complex.
+ * case 3应该不存在
+ * 这条规则还有问题
+ ************************************************************/
+					case 3:
+						verbStr = getStrFromTregexMatcher(mat, "Verb");
+						textStr += "PVIP: " + GeneAStr + " " + verbStr + " " + relationStr + "  " + GeneBStr;
 						break;
 					default:
 						break;
@@ -231,11 +245,12 @@ public class GetRelationParseTree {
 								geneANegative = true;
 							break;
 						case 1: // PIP
-							if (GeneALocation < NegativeLoc && NegativeLoc < relationLocation) // PNIP
+						case 3: // PVIP
+							if (GeneALocation < NegativeLoc && NegativeLoc < relationLocation) // PNIP or // PNVIP, PVNP
 								relationNegative = true;
-							if (relationLocation < NegativeLoc && NegativeLoc < GeneBLocation) // PINP
+							if (relationLocation < NegativeLoc && NegativeLoc < GeneBLocation) // PINP or // PVINP
 								geneBNegative = true;
-							if (NegativeLoc < GeneALocation) // NPIP
+							if (NegativeLoc < GeneALocation) // NPIP or // NPVIP
 								geneANegative = true;
 							break;
 						case 2: // IPP
@@ -245,6 +260,8 @@ public class GetRelationParseTree {
 								geneBNegative = true;
 							if (relationLocation < NegativeLoc && NegativeLoc < GeneALocation) // INPP
 								geneANegative = true;
+							break;
+						default:
 							break;
 					}
 					return relationNegative ^ geneANegative ^ geneBNegative;

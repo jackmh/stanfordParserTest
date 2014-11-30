@@ -46,11 +46,18 @@ class ParserDemo2 {
 			}
 
 			//String sent2 = ("TSNAX is a human protein that bears a homology to TSN and interacts with it.");
-			String sent2 = ("you're a protein that specifically binds the microsatellite d(GT)n and the transcripts (GU)n.");
+			//String sent2 = ("you're a protein that specifically binds the microsatellite d(GT)n and the transcripts (GU)n.");
+			String sent2 = "21, Interaction between HSP27 and MME.";
 			// Use the default tokenizer for this TreebankLanguagePack
 			Tokenizer<? extends HasWord> toke = tlp.getTokenizerFactory()
 					.getTokenizer(new StringReader(sent2));
 			List<? extends HasWord> sentence2 = toke.tokenize();
+			Tree parseTree = lp.parse(sentence2);
+			System.out.println(sentence2);
+			System.out.println(parseTree);
+			System.out.println(parseTree.taggedYield());
+			System.out.println(parseTree.taggedLabeledYield());
+			System.out.println();
 
 			String[] sent3 = { "It", "can", "can", "it", "." };
 			String[] tag3 = { "PRP", "MD", "VB", "PRP", "." }; // Parser gets

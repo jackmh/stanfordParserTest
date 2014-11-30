@@ -109,6 +109,12 @@ public class proteinREC {
 				Arrays.asList("no", "not", "neither", "nor", "n't"));
 		
 		String key, word;
+/******************************************************************************
+ * 这里需要进一步改进，识别出蛋白质就行，原来是列表，现在可以继续返回Hasword列表
+ * 需要理解Hasword和String之间是如何转换的.
+//		List<HasWord> newSentenceList = new ArrayList<HasWord>();
+ * 
+ *****************************************************************************/
 		while (index < numOfList) {
 			HasWord wordInSent = sentenceList.get(index);
 			word = wordInSent.word();
@@ -175,10 +181,10 @@ public class proteinREC {
 	 * 检查蛋白质全称是否存在, 若存在则返回(蛋白质全称字符串、对应长度)
 	 * */
 	private proteinEntity checkProteinFullnameExists(
-			String firstCharLowerCase,
-			int index,
-			HashMap<String, String> firstCharDict,
-			List<HasWord> sentenceList
+				String firstCharLowerCase,
+				int index,
+				HashMap<String, String> firstCharDict,
+				List<HasWord> sentenceList
 			)
 	{
 		String value = firstCharDict.get(firstCharLowerCase);		
