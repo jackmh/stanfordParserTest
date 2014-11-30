@@ -1,3 +1,15 @@
+32, HSP27/CD10 complex.
+23, No detectable interaction between HSP27 and HSP70.
+21, Interaction between HSP27 and CD10.
+22, Interaction of HSP27 with CD10.
+31, HSP27 CD10 complex.
+33, HSP27:CD10 complex.
+
+11, HSP27 interacts with CD10.
+12, HSP27 has weak association with CD10.
+13, HSP27 does not interact with CD10.
+14, HSP27 has no association with CD10.
+
 1, HSP27 is not interacted with CD10 and HSP70.
 2, HSP27 is interacted with CD10, but not HSP70.
 3, HSP27 is interacted with CD10 and RNF7P1, but not HSP70 and foxq1.

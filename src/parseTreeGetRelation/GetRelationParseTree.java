@@ -218,6 +218,7 @@ public class GetRelationParseTree {
 			
 			for (int NegativeLoc: keyList) {
 				String value = negativeWordsMap.get(NegativeLoc);
+				value = value.toLowerCase();
 				if (value.compareTo("not") == 0 || value.compareTo("no") == 0 || value.compareTo("n't") == 0)
 				{
 					switch (kRule) {

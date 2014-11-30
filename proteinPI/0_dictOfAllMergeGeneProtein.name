@@ -793,7 +793,6 @@ arrdc3	ARRDC3
 hap	BAG1
 lung surfactant	SFTPD
 har	LYVE1
-has	HAS1
 hat	TMPRSS11D
 eea3	GRIK1
 nipa2p5	NIPA2P5
@@ -120477,7 +120476,6 @@ mitsugumin-23	TMEM109
 slc25a1p2	SLC25A1P2
 s182	PSEN1
 loc285423	LOC285423
-x	PSMB5
 addh	POLR3A
 fem1b	FEM1B
 fem1c	FEM1C

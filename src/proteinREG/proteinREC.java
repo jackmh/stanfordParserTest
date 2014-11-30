@@ -109,7 +109,6 @@ public class proteinREC {
 				Arrays.asList("no", "not", "neither", "nor", "n't"));
 		
 		String key, word;
-		boolean relationTestFlag = false;
 		while (index < numOfList) {
 			HasWord wordInSent = sentenceList.get(index);
 			word = wordInSent.word();
@@ -119,6 +118,11 @@ public class proteinREC {
 			{
 				newSentList.add(word);
 				negativeWordsMap.put(index, word);
+			}
+			else if (relationKeySet.contains(key))
+			{
+				newSentList.add(word);
+				relationWordsMap.put(index+1, word);
 			}
 			else if (conjwordset.contains(key))
 			{
@@ -153,20 +157,12 @@ public class proteinREC {
 					newSentList.add(value);
 				}
 				else {
-					relationTestFlag = true;
 					newSentList.add(word);
 				}
 				index += newProtein.getIntNumber() - 1;
 			}
 			else {
-				relationTestFlag = true;
 				newSentList.add(word);
-			}
-			if (relationTestFlag == true &&
-					relationKeySet.contains(key) &&
-					(!relationWordsMap.keySet().contains(index+1)))
-			{
-				relationWordsMap.put(index+1, word);
 			}
 			index += 1;
 		}
