@@ -14,7 +14,6 @@ import config.config;
 
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.Word;
-import edu.stanford.nlp.ling.tokensregex.types.Value;
 import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
 import edu.stanford.nlp.process.CoreLabelTokenFactory;
 import edu.stanford.nlp.process.PTBTokenizer;
@@ -92,14 +91,12 @@ public class GetRelationParseTree {
 	 * 2. 判断在三种情况下PPI、IPP、PIP三种情况下中I的词性，PP之间词的个数
 	 * 	  1> PIP：I的词性常为VP或NN
 	 *    2> PPI/IPP情况下I的词性，PP之间词的个数
-***************************************************************    
-	 * 3. 否定词识别
+	 * 3. Negative words recognition
 	 *	 two proteins, a relation keyword, a negation keyword.
 			For example:
 				PIP. A is not interacted with B.
 				PPI. A and B is not interaction.
 				IPP. not interaction A and B.
-***************************************************************
 	 * */
 	private String relationExtract(Tree parseTree,
 				String RuleStr,
@@ -110,7 +107,7 @@ public class GetRelationParseTree {
 				)
 	{
 		String textStr = "";
-		// 区别模式匹配中加括号的区别以及括号加在某个位置的区别
+		// Attention: Pay attention to the location of bracket
 		TregexPattern tregrex = TregexPattern.compile(RuleStr);
 		TregexMatcher mat = tregrex.matcher(parseTree);
 		String GeneAStr = "", GeneBStr = "", relationStr = "";
@@ -160,23 +157,7 @@ public class GetRelationParseTree {
 		return textStr;		
 	}
 	
-/***************************************************************    
-	 * 3. 否定词识别处理
-	 *	 two proteins, a relation keyword, a negation keyword.
-			For example:
-				PIP. A is not interacted with B.
-				PPI. A and B is not interaction.
-				IPP. not interaction A and B.
-***************************************************************/
-	private boolean isNegativeWordsInSentence(
-			proteinREC proteinSent,
-			int kRule,
-			String relationStr,
-			String GeneAStr,
-			String GeneBStr
-			)
-	{
-		/**
+	/***************************************************************
 		 * Three Rules: PIP, PPI, IPP, when there is a negative between the interation of PP
 		 * 1. if PNIP (Protein .. Negative .. relation .. Protein), PINP, NPIP
 		 * 		P and P is not interaction. (Negative word is between the first Protein and interaction words)
@@ -209,7 +190,16 @@ public class GetRelationParseTree {
 		 * 4. the other situations:
 		 * 		1> Neither ProteinA nor ProteinB is interacted with ProteinC.
 		 * 		2> Neither ProteinA and ProteinB nor ProteinC with ProteinD is interacted with ProteinE.
-		 */
+		 *
+	***************************************************************/
+	private boolean isNegativeWordsInSentence(
+			proteinREC proteinSent,
+			int kRule,
+			String relationStr,
+			String GeneAStr,
+			String GeneBStr
+			)
+	{
 		int relationLocation = proteinSent.getLocationOfSpecifiedWords(proteinSent.getRelationWordsMap(), relationStr);
 		boolean relationNegative = false;
 		int GeneALocation = proteinSent.getLocationOfRecognitionProtein(GeneAStr);
