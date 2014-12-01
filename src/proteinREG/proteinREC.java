@@ -183,10 +183,6 @@ public class proteinREC {
 		}
 		preSentenceStr = PTBTokenizer.labelList2Text(oldSentenceList);
 		newSentenceStr = PTBTokenizer.labelList2Text(newSentenceList);
-		if (config.__DEBUG == true) {
-			System.out.println(preSentenceStr);
-			System.out.println(newSentenceStr);
-		}
 	}
 	
 	public List<HasWord> getNewSentenceList() {
@@ -350,6 +346,44 @@ public class proteinREC {
 	}
 	/******************************************************************************************************/
 
+	/******************************************************************************************************/
+	/**
+	 * Get the location of Given HasWord or String.
+	 */
+	public int getLocationOfAHasWord(HasWord word)
+	{
+		int index = 0;
+		for (HasWord aWord: newSentenceList) {
+			if (word.equals(aWord)) {
+				break;
+			}
+			index += 1;
+		}
+		return index;
+	}
+	
+	public int getLocationOfAString(String str)
+	{
+		int index = 0;
+		Word wordSample = new Word(str);
+		for (HasWord aWord: newSentenceList)
+		{
+			if (wordSample.equals(aWord)) {
+				break;
+			}
+			index += 1;
+		}
+		return index;
+	}
+	
+	public String getStringFromLocation(int index) {
+		if (index >= 0)
+		{
+			return newSentenceList.get(index).word();
+		}
+		return null;
+	}
+	/******************************************************************************************************/
 	
 	/******************************************************************************************************/
 	/**

@@ -6,20 +6,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.io.StringReader;
 
 import proteinREG.proteinREC;
 
 import config.config;
 
-import edu.stanford.nlp.ling.CoreLabel;
-import edu.stanford.nlp.ling.HasWord;
 import edu.stanford.nlp.ling.Word;
 import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
-import edu.stanford.nlp.process.CoreLabelTokenFactory;
-import edu.stanford.nlp.process.PTBTokenizer;
-import edu.stanford.nlp.process.Tokenizer;
-import edu.stanford.nlp.process.TokenizerFactory;
 import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.trees.tregex.TregexMatcher;
 import edu.stanford.nlp.trees.tregex.TregexPattern;
@@ -27,6 +20,7 @@ import edu.stanford.nlp.trees.tregex.TregexPattern;
 public class GetRelationParseTree {
 	
 	private String sentence = null;
+	private HashSet<String> interactionPairSet = new HashSet<String>();
 	
 	// Three relation extraction rules.
 	private String[] relationPPIRule = new String[]
@@ -34,17 +28,19 @@ public class GetRelationParseTree {
 				"/^NN.*/=GeneA .. (/^NN.*/=GeneB .. /^NN.*/=Relation)",
 				"/^NN.*/=GeneA .. (/^VB.*/=Relation .. /^NN.*/=GeneB)",
 				"/^NN.*/=Relation .. (/^NN.*/=GeneA .. /^NN.*/=GeneB)",
-				"/^NN.*/=GeneA .. ((/^VB.*/=Verb << /^NN.*/=Relation) .. /^NN.*/=GeneB)"
+				"/^NN.*/=GeneA .. (/^VB.*/=Verb .. (/^NN.*/=Relation .. /^NN.*/=GeneB))"
 			};
 	
 	public GetRelationParseTree() {
 		super();
 		this.sentence = "";
+		interactionPairSet.clear();
 	}
 	
 	public GetRelationParseTree(String sentence) {
 		super();
 		this.sentence = sentence;
+		interactionPairSet.clear();
 	}
 	
 	// 区别模式匹配中加括号的区别以及括号加在某个位置的区别
@@ -58,13 +54,13 @@ public class GetRelationParseTree {
 		// 解析成语法树比较耗时
 		Tree parseTree = lParser.apply(proteinSent.getNewSentenceList());
 		
-		//parseTree.pennPrint();
+		if (config.__DEBUG == true) {
+			parseTree.pennPrint();
+		}
 		
 		newSentenceText += "=============================================\n";
 		newSentenceText += parseTree.taggedYield() + "\n";
-		
 		if (config.__DEBUG == true) {
-			System.out.println(proteinSent.getNewSentenceList());
 			System.out.println(parseTree.taggedYield());
 			System.out.println(parseTree.taggedLabeledYield());
 		}
@@ -119,6 +115,25 @@ public class GetRelationParseTree {
 						relationKeySet.contains(relationStr.toLowerCase())
 				)
 			{
+				String proteinsPair = new String(GeneAStr + ":" + GeneBStr);
+				if (!interactionPairSet.contains(proteinsPair))
+				{
+					interactionPairSet.add(proteinsPair);
+					proteinsPair = GeneBStr + ":" + GeneAStr;
+					interactionPairSet.add(proteinsPair);
+				}
+				else {
+					continue;
+				}
+				if (kRule == 3)
+				{
+					verbStr = getStrFromTregexMatcher(mat, "Verb");
+					int verbLoc = proteinSent.getLocationOfAString(verbStr);
+					int relationLoc = proteinSent.getLocationOfAString(relationStr);
+					if (relationLoc - verbLoc > 3) {
+						continue;
+					}
+				}
 				textStr += "---------------------------------------------\n";
 				boolean flag = isNegativeWordsInSentence(proteinSent, kRule, relationStr, GeneAStr, GeneBStr);
 				if (flag == true)
@@ -137,14 +152,7 @@ public class GetRelationParseTree {
 					case 2: // IPP
 						textStr +=  "IPP: " + relationStr + "  " + GeneAStr + "  " + GeneBStr;
 						break;
-/************************************************************
- * BUG2:
- * TSNAX is a SMN1 the Translin-containing RNA binding complex.
- * case 3应该不存在
- * 这条规则还有问题
- ************************************************************/
 					case 3:
-						verbStr = getStrFromTregexMatcher(mat, "Verb");
 						textStr += "PVIP: " + GeneAStr + " " + verbStr + " " + relationStr + "  " + GeneBStr;
 						break;
 					default:
@@ -156,6 +164,9 @@ public class GetRelationParseTree {
 				}
 				textStr += "\n";
 			}
+		}
+		if (config.__DEBUG == true && textStr != "") {
+			System.out.println(textStr);
 		}
 		return textStr;		
 	}
