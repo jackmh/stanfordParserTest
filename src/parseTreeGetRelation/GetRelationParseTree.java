@@ -32,9 +32,9 @@ public class GetRelationParseTree {
 	private String[] relationPPIRule = new String[]
 			{
 				"/^NN.*/=GeneA .. (/^NN.*/=GeneB .. /^NN.*/=Relation)",
-				"/^NN.*/=GeneA .. (/^VB.*/=Relation .. /^NN.*|^CD.*/=GeneB)",
+				"/^NN.*/=GeneA .. (/^VB.*/=Relation .. /^NN.*/=GeneB)",
 				"/^NN.*/=Relation .. (/^NN.*/=GeneA .. /^NN.*/=GeneB)",
-				"/^NN.*/=GeneA .. ((/^VB.*/=Verb .. /^NN.*/=Relation) .. /^NN.*|^CD.*/=GeneB)"
+				"/^NN.*/=GeneA .. ((/^VB.*/=Verb << /^NN.*/=Relation) .. /^NN.*/=GeneB)"
 			};
 	
 	public GetRelationParseTree() {
@@ -49,26 +49,14 @@ public class GetRelationParseTree {
 	
 	// 区别模式匹配中加括号的区别以及括号加在某个位置的区别
 	public String getRelateion(LexicalizedParser lParser,
-	//		List<HasWord> sentence22, 
 			HashSet<String> geneSet,
 			HashSet<String> relationKeySet,
 			proteinREC proteinSent
 			)
 	{
 		String newSentenceText = "";
-/***********************************************************************************
- * 识别变换之后可以修改此BUG***** 这里分词有问题 
- * 
-*********************************** MME. ---> MME, . || not MME.  *****************************/
-		
-		TokenizerFactory<CoreLabel> tokenizerFactory = PTBTokenizer.factory(
-				new CoreLabelTokenFactory(), "");
-		Tokenizer<CoreLabel> tok = tokenizerFactory
-				.getTokenizer(new StringReader(sentence));
-		List<CoreLabel> rawWords = tok.tokenize();
-		
 		// 解析成语法树比较耗时
-		Tree parseTree = lParser.apply(rawWords);
+		Tree parseTree = lParser.apply(proteinSent.getNewSentenceList());
 		
 		//parseTree.pennPrint();
 		
@@ -76,7 +64,7 @@ public class GetRelationParseTree {
 		newSentenceText += parseTree.taggedYield() + "\n";
 		
 		if (config.__DEBUG == true) {
-			System.out.println(rawWords);
+			System.out.println(proteinSent.getNewSentenceList());
 			System.out.println(parseTree.taggedYield());
 			System.out.println(parseTree.taggedLabeledYield());
 		}
@@ -150,6 +138,7 @@ public class GetRelationParseTree {
 						textStr +=  "IPP: " + relationStr + "  " + GeneAStr + "  " + GeneBStr;
 						break;
 /************************************************************
+ * BUG2:
  * TSNAX is a SMN1 the Translin-containing RNA binding complex.
  * case 3应该不存在
  * 这条规则还有问题

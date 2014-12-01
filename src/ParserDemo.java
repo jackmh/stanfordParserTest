@@ -84,7 +84,7 @@ class ParserDemo {
 		String testFileList[] = new String[]
 				{
 				"12358744"
-				}; // "17342744New" "16043634", "18062930", "18424275", "20578993", "11278549" 
+				}; // "17342744New", "16043634", "18062930", "18424275", "20578993", "11278549" 
 		for (String file: testFileList) {
 			setfilenameExp(file);
 			System.out.println(filenameExp);
@@ -215,15 +215,15 @@ class ParserDemo {
 			for(List<HasWord> sentence:sentenceListWord) {
  				proteinREC proteinSent = new proteinREC();
  				proteinSent.proteinRecognition(sentence, allKeysSets, relationKeySet, firstCharDict, geneSynProteinDict);
- 				newAbstractText += proteinSent.getSentence() + " ";
+ 				newAbstractText += proteinSent.getNewSentenceStr() + " ";
  				if (proteinSent.getNumberOfRecognitionProteins() >= 2 && proteinSent.getNumberOfRelationWords() > 0) {
  					if (config.__DEBUG == true) {
  						System.out.println();
- 						System.out.println(proteinSent.getOriginalSentence());
- 						System.out.println(proteinSent.getSentence());
+ 						System.out.println(proteinSent.getPreSentenceStr());
+ 						System.out.println(proteinSent.getNewSentenceStr());
  					}
- 					newFileText += proteinSent.getOriginalSentence() + "\n" + proteinSent.getSentence() + "\n";
-	 				GetRelationParseTree relationExtracTree = new GetRelationParseTree(proteinSent.getSentence());
+ 					newFileText += proteinSent.getPreSentenceStr() + "\n" + proteinSent.getNewSentenceStr() + "\n";
+	 				GetRelationParseTree relationExtracTree = new GetRelationParseTree(proteinSent.getNewSentenceStr());
 	 				newFileText += relationExtracTree.getRelateion(lp, geneSet, relationKeySet, proteinSent) + "\n";
  				}
 			}

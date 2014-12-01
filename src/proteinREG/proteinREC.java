@@ -8,8 +8,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import config.config;
+
 import edu.stanford.nlp.ling.HasWord;
-import edu.stanford.nlp.ling.Sentence;
+import edu.stanford.nlp.ling.Word;
 import edu.stanford.nlp.process.PTBTokenizer;
 
 /*
@@ -21,8 +23,8 @@ public class proteinREC {
 	/***********************************************************************************/
 	/********************* private variable ********************************************/
 	
-	private String originalSentence;
-	private String newSentence;
+	private String preSentenceStr;
+	private String newSentenceStr;
 	/**
 	 * First parameter: HashMap [key: original string; values: newGene]
 	 * Following: the location of ths hashmap in this sentence.
@@ -30,25 +32,32 @@ public class proteinREC {
 	private HashMap<Integer, proteinEntity> proteinMap = new HashMap<Integer, proteinEntity>();
 	private HashMap<Integer, String> relationWordsMap = new HashMap<Integer, String>();
 	private HashMap<Integer, String> negativeWordsMap = new HashMap<Integer, String>();
+	private List<HasWord> newSentenceList = new ArrayList<HasWord>();
 	
 	/******************* end private variable *****************************************/
 	
 	public proteinREC() {
-		newSentence = originalSentence = "";
+		preSentenceStr = newSentenceStr = "";
+		
 		relationWordsMap.clear();
 		proteinMap.clear();
 		negativeWordsMap.clear();
+		newSentenceList.clear();
 	}
 
 	public proteinREC(String sentence) {
-		newSentence = originalSentence = sentence;
+		preSentenceStr = newSentenceStr = sentence;
+		
 		relationWordsMap.clear();
 		proteinMap.clear();
 		negativeWordsMap.clear();
+		newSentenceList.clear();
 	}
 	
-	public proteinREC(List<HasWord> sentence) {
-		newSentence = originalSentence = PTBTokenizer.labelList2Text(sentence);
+	public proteinREC(List<HasWord> oldSentenceList) {
+		preSentenceStr = newSentenceStr = PTBTokenizer.labelList2Text(oldSentenceList);
+
+		newSentenceList.clear();
 		relationWordsMap.clear();
 		proteinMap.clear();
 		negativeWordsMap.clear();
@@ -79,60 +88,55 @@ public class proteinREC {
 	 * 2. 返回一个句子中出现两个或两个以上蛋白质的句子
 	 * */
 	
-	public void proteinRecognition(List<HasWord> sentenceList,
+	public void proteinRecognition(List<HasWord> oldSentenceList,
 			HashSet<String> allKeysSets,
 			HashSet<String> relationKeySet,
 			HashMap<String, String> firstCharDict,
 			HashMap<String, String> geneSynProteinDict) {
-		originalSentence = PTBTokenizer.labelList2Text(sentenceList);
+		
+		int index = 0, numOfList = oldSentenceList.size();
 		
 		HashSet<String> conjwordset = new HashSet<String>(
 				Arrays.asList("to", "of", "the", "and",
 				"but", "an", "for", "are", "if",
 				"is", "was", "it", "in", "as"));
 		
-		int index = 0, numOfList = sentenceList.size();
-		ArrayList<String> newSentList = new ArrayList<String>();
-		
-		HashSet<String> variedWordsHashSet = new HashSet<String>();
-		
-		/***********************************************************************************/
-		//  有点乱，如下代码需要重新整理
-		/***********************************************************************************/
-		/************************************************************************************/
-		
-		/*************  主要功能如下： 
-		 * 1. 识别出sentenceList中的蛋白质
-		 *    
-		 ***********************************************************************************/
+/*************  需要改进的地方 
+* 1. 根据词性来识别出句子中的蛋白质实体
+* 2. 利用CRF来识别蛋白质.
+*  --------------------------------> 后期改进
+***********************************************************************************/
 		HashSet<String> negativeWordsSet = new HashSet<String>(
 				Arrays.asList("no", "not", "neither", "nor", "n't"));
 		
 		String key, word;
-/******************************************************************************
- * 这里需要进一步改进，识别出蛋白质就行，原来是列表，现在可以继续返回Hasword列表
- * 需要理解Hasword和String之间是如何转换的.
-//		List<HasWord> newSentenceList = new ArrayList<HasWord>();
- * 
- *****************************************************************************/
+		/******************************************************************************
+		 * BUG1: Fixed.
+		 * 进一步改进，识别出蛋白质就行，主要参数是列表，识别结束继续返回Hasword列表
+		 * 注意这里需要理解Hasword和String之间是如何转换的.
+		 * 分词程序有缺陷: try this sentence: Interaction between HSPB1 and MME.
+		 *****************************************************************************/
+		HashSet<String> variedWordsHashSet = new HashSet<String>();
+				
 		while (index < numOfList) {
-			HasWord wordInSent = sentenceList.get(index);
+			HasWord wordInSent = oldSentenceList.get(index);
 			word = wordInSent.word();
 			key = word.toLowerCase();
 			
+			Word oneHasWord = new Word(word);
 			if (negativeWordsSet.contains(key))
 			{
-				newSentList.add(word);
+				newSentenceList.add(oneHasWord);
 				negativeWordsMap.put(index, word);
 			}
 			else if (relationKeySet.contains(key))
 			{
-				newSentList.add(word);
+				newSentenceList.add(oneHasWord);
 				relationWordsMap.put(index+1, word);
 			}
 			else if (conjwordset.contains(key))
 			{
-				newSentList.add(word);
+				newSentenceList.add(oneHasWord);
 			}
 			else if (allKeysSets.contains(key))
 			{
@@ -141,7 +145,10 @@ public class proteinREC {
 					variedWordsHashSet.add(key);
 				}
 				String value = geneSynProteinDict.get(key);
-				newSentList.add(value);
+				
+				oneHasWord.setValue(value);
+				newSentenceList.add(oneHasWord);
+				
 				proteinEntity proteinFindEntity = new proteinEntity();
 				proteinFindEntity.setProteinEntity(word, value, 1);
 				proteinMap.put(index+1, proteinFindEntity);
@@ -149,7 +156,7 @@ public class proteinREC {
 			// 识别蛋白质全称, 先检测其第一个字母是否在集合中
 			else if (firstCharDict.keySet().contains(key))
 			{
-				proteinEntity newProtein = checkProteinFullnameExists(key, index, firstCharDict, sentenceList);
+				proteinEntity newProtein = checkProteinFullnameExists(key, index, firstCharDict, oldSentenceList);
 				String newSubkeyStr = newProtein.getOriginalProteinName();
 				// 根据返回新串和首单词进行对比，若不相等，说明存在字符串全称是识别出来的蛋白质
 				if (0 != newSubkeyStr.compareTo(key)) {
@@ -160,21 +167,36 @@ public class proteinREC {
 					proteinEntity proteinFindEntity = new proteinEntity();
 					proteinFindEntity.setProteinEntity(newSubkeyStr, value, newProtein.getIntNumber());
 					proteinMap.put(index+1, proteinFindEntity);
-					newSentList.add(value);
+					
+					oneHasWord.setValue(value);
+					newSentenceList.add(oneHasWord);
 				}
 				else {
-					newSentList.add(word);
+					newSentenceList.add(oneHasWord);
 				}
 				index += newProtein.getIntNumber() - 1;
 			}
 			else {
-				newSentList.add(word);
+				newSentenceList.add(oneHasWord);
 			}
 			index += 1;
 		}
-		newSentence = PTBTokenizer.labelList2Text(Sentence.toUntaggedList(newSentList));
+		preSentenceStr = PTBTokenizer.labelList2Text(oldSentenceList);
+		newSentenceStr = PTBTokenizer.labelList2Text(newSentenceList);
+		if (config.__DEBUG == true) {
+			System.out.println(preSentenceStr);
+			System.out.println(newSentenceStr);
+		}
 	}
 	
+	public List<HasWord> getNewSentenceList() {
+		return newSentenceList;
+	}
+
+	public void setNewSentenceList(List<HasWord> newSentenceList) {
+		this.newSentenceList = newSentenceList;
+	}
+
 	/*
 	 * 检查蛋白质数据库中，包含第一个单词的字符串全称是否存在于该数据库中
 	 * 如存在，则返回集合（蛋白质串、全称、全称包含单词个数）
@@ -241,19 +263,23 @@ public class proteinREC {
 			proteinMap.put(Integer.valueOf(index) + 1, newProteinMap);
 		}
 	}
-
-	public String getOriginalSentence() {
-		return originalSentence;
-	}
 	
-	public String getSentence() {
-		return newSentence;
+	public String getPreSentenceStr() {
+		return preSentenceStr;
 	}
 
-	public void setSentence(String sentence) {
-		newSentence = sentence;
+	public void setPreSentenceStr(String preSentenceStr) {
+		this.preSentenceStr = preSentenceStr;
 	}
-	
+
+	public String getNewSentenceStr() {
+		return newSentenceStr;
+	}
+
+	public void setNewSentenceStr(String newSentenceStr) {
+		this.newSentenceStr = newSentenceStr;
+	}
+
 	public HashMap<Integer, String> getRelationWordsMap() {
 		return relationWordsMap;
 	}
