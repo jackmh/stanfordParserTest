@@ -13,19 +13,24 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.nio.file.Path;
 
 import org.w3c.dom.ranges.RangeException;
 
 import parseTreeGetRelation.GetRelationParseTree;
 import process.DocumentPreprocessor;
 import proteinREG.proteinREC;
+import pubmedTextProcessing.ppiTextProcess;
+import sun.misc.OSEnvironment;
 import config.config;
+import dataAnalysis.resultanalysis;
 
 import edu.stanford.nlp.ling.HasWord;
 import edu.stanford.nlp.ling.Word;
 import edu.stanford.nlp.trees.*;
 import edu.stanford.nlp.trees.tregex.TregexMatcher;
 import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
+import edu.stanford.nlp.process.DocumentProcessor;
 
 
 class ParserDemo {
@@ -38,8 +43,8 @@ class ParserDemo {
 	 * need to include in the classpath for ParserDemo to work.
 	 */
 	
-	public static final String geneDictFilename = config.BaseDIR + File.separator + "0_dictOfAllMergeGeneProtein.name";
-	public static final String relateionKeyFilename = config.BaseDIR + File.separator + "0_relationKeys.name";
+	public static final String geneDictFilename = config.BaseDIR + File.separator + "dictOfAllMergeGeneProtein.name";
+	public static final String relateionKeyFilename = config.BaseDIR + File.separator + "relationKeys.name";
 	
 	//private static HashMap<String, String> geneSynProteinDict = new HashMap<String, String>();
 	
@@ -57,14 +62,9 @@ class ParserDemo {
 	private static LexicalizedParser lp = LexicalizedParser
 			.loadModel("edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz");
 	
-	private static String filenameExp = "17342744New";
+	private static String pubmedID = "17342744New";
 	
 	public static void main(String[] args) {
-		try {
-			init();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 		demoAPI(lp);
 	}
 	/**
@@ -75,21 +75,64 @@ class ParserDemo {
 	 * to print out. Once again, one can capture the output by passing a
 	 * PrintWriter to TreePrint.printTree.
 	 */
-	public static void demoAPI(LexicalizedParser lp) {		
+	public static void demoAPI(LexicalizedParser lp) {
+		try {
+			init();
+		} catch (RangeException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+				
 		/*
 		 * 这里加上
 		 * 1. 从文件中读取摘要,对摘要进行分句([.?!]).
 		 * 2. 对每句话进行蛋白质识别和标准化. 检索出至少包含2个蛋白质的句子
 		 * */
+		LinkedList<String> pubmedFileList = new LinkedList<String>();
+		File dir = new File(config.srcPubmedText);
+		File fileList[] = dir.listFiles();
+		for (int i = 0; i < fileList.length; i ++)
+		{
+			if (fileList[i].isFile())
+			{
+				pubmedFileList.add(fileList[i].getName());
+			}
+		}
+		
 		String testFileList[] = new String[]
 				{
-				"18202719"
+				"12058025", "12058031"
 				}; //  "12358744", "16043634", "18062930", "18424275", "20578993", "11278549" 
-		for (String file: testFileList) {
+		HashMap<String, String> interactiveProteinsMap = new HashMap<String, String>();
+		ppiTextProcess pubmedTextProcess = new ppiTextProcess();
+		
+		for (String file : pubmedFileList) {
 			setfilenameExp(file);
-			System.out.println(filenameExp);
-			String testAbstractText = config.BaseDIR + File.separator + filenameExp;
-			splitAbstractIntoSentence(testAbstractText);
+			System.out.println(pubmedID);
+			String pubmedTextFullName = config.srcPubmedText + File.separator + pubmedID;
+			
+			pubmedTextProcess.setPubmedID(pubmedID);
+			pubmedTextProcess.pubmedTextProcessing(pubmedTextFullName,
+					geneSet, allKeysSets, relationKeySet, firstCharDict, geneSynProteinDict, lp);
+			
+			if (!interactiveProteinsMap.containsKey(pubmedID))
+			{
+				String pubmedIDValues = ConvertHashSetIntoStr(pubmedTextProcess.getInteractiveProteinPairSet());
+				interactiveProteinsMap.put(pubmedID, pubmedIDValues);
+			}
+		}
+		String allInteractiveProteinPairStr = ConvertHashMapIntoStr(interactiveProteinsMap, "# Pubmed id\tGene1|Gene2\n");
+		writeIntoFile(allInteractiveProteinPairStr, config.allRecognitionPPIFname);
+		
+		if (config.__ANALYSISFLAG__ == true)
+		{
+			resultanalysis resAnalysis = new resultanalysis();
+			resAnalysis.proteinExtractionStatistic();
+			System.out.println("Accuracy: " + resAnalysis.getAccuracy()
+					+ "\nRecall: " + resAnalysis.getRecall()
+					+ "\nF1-Measure: " + resAnalysis.getF1_Measure() + "\n");
+			System.out.println("-------------------------------------");
 		}
 	}
 	
@@ -104,7 +147,7 @@ class ParserDemo {
 	}
 	
 	public static void setfilenameExp(String filename1) {
-		filenameExp = filename1;
+		pubmedID = filename1;
 	}
 
 	private ParserDemo() {
@@ -120,6 +163,10 @@ class ParserDemo {
 	 * 3. 建立protein-Gene哈希表; (key: protein全称; Values: Gene名)
 	 * */
 	private static void init() throws IOException, RangeException{
+		if (config.__WriteIntoFileFlag__ == true)
+		{
+			deleteFile(config.DstDIR);
+		}
 		String[] arrs  = null;
 		/*
 		 * Relation words set
@@ -142,7 +189,8 @@ class ParserDemo {
 		Iterable<String> allLines = IOUtils.readLines(geneDictFilename); 
 		for (String line : allLines)
 		{
-			if (line.compareTo("") == 0 || line.compareTo("\t") == 0)
+			line = line.trim();
+			if (line.compareTo("") == 0 || line.substring(0, 1).compareTo("#") == 0)
 				continue;
 			arrs = line.split("\t");
 			protein = arrs[0].trim();
@@ -177,82 +225,104 @@ class ParserDemo {
 		}
 	}
 	
-	/*
-	 * 1. 对摘要进行分句;
-	 * 2. 针对摘要中的每一句, 识别出其中的蛋白质并对蛋白质进行标准化
-	 * 3. 对每一句话应用Stanford Parser进行解析, 得到语法树
-	 * 4. 由3得到的语法树, 结合关系词、gene库找到候选的蛋白质相互作用对
-	 * */
-	public static String splitAbstractIntoSentence(String abstractPath) {
-		Iterable<String> allLines = IOUtils.readLines(abstractPath);
-		/*********************************************************/ 
-		/*
-		 * 1. Convert the Abstract text into sentenceList. each list contain of sentence list.
-		 * 2. In each paragraph, split each sentence with char[.?!] as default.
-		 */
-		String newAbstractText = "";
-		List<List<HasWord>> sentenceListWord = new LinkedList<List<HasWord>>();
-		
-		String newFileText = "Pubmed id: " + filenameExp + "\n--------------------\n\n";
-		
-		for (String paragraph : allLines) {
-			if (paragraph.compareTo("") == 0 || paragraph.compareTo("\n") == 0)
+	/**
+	 * * 删除此路径名表示的文件或目录。 
+     * 如果此路径名表示一个目录，则会先删除目录下的内容再将目录删除，所以该操作不是原子性的。 
+     * 如果目录中还有目录，则会引发递归动作。 
+     * @param filePath 
+     *            要删除文件或目录的路径。 
+     * @return 当且仅当成功删除文件或目录时，返回 true；否则返回 false。 
+     */ 
+	public static void delFolder(String folderPath) {
+		try {
+			deleteFile(folderPath); //删除完里面所有内容
+			String filePathString = folderPath;
+			filePathString = filePathString.toString();
+			File myFilePath = new File(filePathString);
+			myFilePath.delete(); //删除空文件夹
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	public static boolean deleteFile(String filePath)
+	{
+		boolean flag = false;
+		File file = new File(filePath);
+		if (!file.exists() || !file.isDirectory()) {
+			return flag;
+		}
+		String[] tempFileList = file.list();
+		File tempFile = null;
+		for (int i = 0; i < tempFileList.length; i ++) {
+			if (filePath.endsWith(File.separator))
 			{
-				newAbstractText += paragraph;
+				tempFile = new File(filePath + tempFileList[i]);
+			}
+			else {
+				tempFile = new File(filePath + File.separator + tempFileList[i]);
+			}
+			
+			if (tempFile.isFile())
+			{
+				tempFile.delete();
+				flag = true;
+			}
+			if (tempFile.isDirectory()) {
+				deleteFile(filePath + File.separator + tempFileList[i]);
+				delFolder(filePath + File.separator + tempFileList[i]);
+				flag = true;
+			}
+		}
+		return flag;
+	}
+	/**************************************************/
+	
+	public static String ConvertHashSetIntoStr(HashSet<String> interactiveProteinPairSet)
+	{
+		String interactiveResultStr = "";
+		int firstFlag = 1;
+		for (String proteinPair:interactiveProteinPairSet)
+		{
+			if (firstFlag == 1)
+			{
+				interactiveResultStr += proteinPair;
+				firstFlag = 0;
 				continue;
 			}
-			Reader reader = new StringReader(paragraph);
-			DocumentPreprocessor dp = new DocumentPreprocessor(reader);
-			
-			Iterator<List<HasWord>> it = dp.iterator();
-			// each sentence in paragraph.
-			sentenceListWord.clear();
-			while (it.hasNext()) {
-			   List<HasWord> sentence = it.next();
-			   sentenceListWord.add(sentence);
-			}
-			// convert the list into string, append it into newAbstractText
-			for(List<HasWord> sentence:sentenceListWord) {
- 				proteinREC proteinSent = new proteinREC();
- 				proteinSent.proteinRecognition(sentence, allKeysSets, relationKeySet, firstCharDict, geneSynProteinDict);
- 				newAbstractText += proteinSent.getNewSentenceStr() + " ";
- 				if (proteinSent.getNumberOfRecognitionProteins() >= 2 && proteinSent.getNumberOfRelationWords() > 0) {
- 					if (config.__DEBUG == true) {
- 						System.out.println();
- 						System.out.println(proteinSent.getPreSentenceStr());
- 						System.out.println(proteinSent.getNewSentenceStr());
- 					}
- 					newFileText += proteinSent.getPreSentenceStr() + "\n" + proteinSent.getNewSentenceStr() + "\n";
-	 				GetRelationParseTree relationExtracTree = new GetRelationParseTree(proteinSent.getNewSentenceStr());
-	 				newFileText += relationExtracTree.getRelateion(lp, geneSet, relationKeySet, proteinSent) + "\n";
- 				}
-			}
-			newAbstractText = newAbstractText.trim();
-			newAbstractText += "\n";
+			interactiveResultStr += "," + proteinPair; 
 		}
-		if (config.__WriteIntoFileFlag) {
-			String newfilename = config.DstDIR + File.separator + filenameExp;
-			try {
-				FileWriter writer = new FileWriter(newfilename);
-				writer.write(newFileText);
-				writer.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		else {
-			System.out.println(newFileText);
-		}
-		
-		newAbstractText = newAbstractText.trim();
-		if (config.__DEBUG == true)
+		return interactiveResultStr;
+	}
+	
+	public static String ConvertHashMapIntoStr(HashMap<String, String> hashMap, String HeadTitle)
+	{
+		String resultOfHashMapStr = "";
+		if (hashMap.size() > 0)
 		{
-			System.out.println("\n---------------------------------------------------------------");
-			System.out.println(newAbstractText);
-			System.out.println("---------------------------------------------------------------");
+			resultOfHashMapStr = HeadTitle;
+			for (String key: hashMap.keySet())
+			{
+				resultOfHashMapStr += key + "\t";
+				if (hashMap.get(key).compareTo("") != 0) {
+					resultOfHashMapStr += hashMap.get(key) + "\n";
+				}
+				else {
+					resultOfHashMapStr += "NA" + "\n";
+				}
+			}
 		}
-		/**************************************************************************************/
-		return newAbstractText;
+		return resultOfHashMapStr.trim();
+	}
+	
+	public static void writeIntoFile(String text, String filename)
+	{
+		try {
+			FileWriter writerConn = new FileWriter(filename);
+			writerConn.write(text);
+			writerConn.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }

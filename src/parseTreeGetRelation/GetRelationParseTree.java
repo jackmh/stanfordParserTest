@@ -25,10 +25,10 @@ public class GetRelationParseTree {
 	// Three relation extraction rules.
 	private String[] relationPPIRule = new String[]
 			{
-				"/^NN.*/=GeneA .. (/^NN.*/=GeneB .. /^NN.*/=Relation)",
-				"/^NN.*/=GeneA .. (/^VB.*/=Relation .. /^NN.*/=GeneB)",
-				"/^NN.*/=Relation .. (/^NN.*/=GeneA .. /^NN.*/=GeneB)",
-				"/^NN.*/=GeneA .. (/^VB.*/=Verb .. (/^NN.*/=Relation .. /^NN.*/=GeneB))"
+				"/^NN.*|^CD.*/=GeneA .. (/^NN.*|^CD.*/=GeneB .. /^NN.*/=Relation)",
+				"/^NN.*|^CD.*/=GeneA .. (/^VB.*/=Relation .. /^NN.*|^CD.*/=GeneB)",
+				"/^NN.*/=Relation .. (/^NN.*|^CD.*/=GeneA .. /^NN.*|^CD.*/=GeneB)",
+				"/^NN.*|^CD.*/=GeneA .. (/^VB.*/=Verb .. (/^NN.*/=Relation .. /^NN.*|^CD.*/=GeneB))"
 			};
 	
 	public GetRelationParseTree() {
@@ -54,13 +54,13 @@ public class GetRelationParseTree {
 		// 解析成语法树比较耗时
 		Tree parseTree = lParser.apply(proteinSent.getNewSentenceList());
 		
-		if (config.__DEBUG == true) {
+		if (config.__DEBUG__ == true) {
 			parseTree.pennPrint();
 		}
 		
 		newSentenceText += "=============================================\n";
 		newSentenceText += parseTree.taggedYield() + "\n";
-		if (config.__DEBUG == true) {
+		if (config.__DEBUG__ == true) {
 			System.out.println(parseTree.taggedYield());
 			System.out.println(parseTree.taggedLabeledYield());
 		}
@@ -115,11 +115,11 @@ public class GetRelationParseTree {
 						relationKeySet.contains(relationStr.toLowerCase())
 				)
 			{
-				String proteinsPair = new String(GeneAStr + ":" + GeneBStr);
+				String proteinsPair = new String(GeneAStr + "|" + GeneBStr);
 				if (!interactionPairSet.contains(proteinsPair))
 				{
 					interactionPairSet.add(proteinsPair);
-					proteinsPair = GeneBStr + ":" + GeneAStr;
+					proteinsPair = GeneBStr + "|" + GeneAStr;
 					interactionPairSet.add(proteinsPair);
 				}
 				else {
@@ -165,7 +165,7 @@ public class GetRelationParseTree {
 				textStr += "\n";
 			}
 		}
-		if (config.__DEBUG == true && textStr != "") {
+		if (config.__DEBUG__ == true && textStr != "") {
 			System.out.println(textStr);
 		}
 		return textStr;		
@@ -292,5 +292,13 @@ public class GetRelationParseTree {
 
 	public void setSentence(String sentence) {
 		this.sentence = sentence;
+	}
+
+	public HashSet<String> getInteractionPairSet() {
+		return interactionPairSet;
+	}
+
+	public int getNumberOfInteractionPair() {
+		return interactionPairSet.size();
 	}
 }

@@ -22,7 +22,7 @@ import edu.stanford.nlp.process.PTBTokenizer;
 public class proteinREC {
 	/***********************************************************************************/
 	/********************* private variable ********************************************/
-	
+
 	private String preSentenceStr;
 	private String newSentenceStr;
 	/**
@@ -33,12 +33,12 @@ public class proteinREC {
 	private HashMap<Integer, String> relationWordsMap = new HashMap<Integer, String>();
 	private HashMap<Integer, String> negativeWordsMap = new HashMap<Integer, String>();
 	private List<HasWord> newSentenceList = new ArrayList<HasWord>();
-	
+
 	/******************* end private variable *****************************************/
-	
+
 	public proteinREC() {
 		preSentenceStr = newSentenceStr = "";
-		
+
 		relationWordsMap.clear();
 		proteinMap.clear();
 		negativeWordsMap.clear();
@@ -47,116 +47,109 @@ public class proteinREC {
 
 	public proteinREC(String sentence) {
 		preSentenceStr = newSentenceStr = sentence;
-		
+
 		relationWordsMap.clear();
 		proteinMap.clear();
 		negativeWordsMap.clear();
 		newSentenceList.clear();
 	}
-	
+
 	public proteinREC(List<HasWord> oldSentenceList) {
-		preSentenceStr = newSentenceStr = PTBTokenizer.labelList2Text(oldSentenceList);
+		preSentenceStr = newSentenceStr = PTBTokenizer
+				.labelList2Text(oldSentenceList);
 
 		newSentenceList.clear();
 		relationWordsMap.clear();
 		proteinMap.clear();
 		negativeWordsMap.clear();
 	}
-	
+
 	/****************************************************************************************/
-	
+
 	/**
-	 * @param sentenceList: 句子列表，包含句子中的一个个单词
-	 * @param allKeysSets: 所有蛋白质和基因集合
-	 * @param firstCharDict: 当蛋白质全称并非一个单词时, 我们需要比较全称是否存在与句子列表中
-	 * @param geneSynProteinDict: 蛋白质和基因集合作为key, 对应的官方基因名称作为Value
-	 * 从原始句子列表中识别出蛋白质、保存于字典proteinMap中，并将识别出的个数保存此中.
+	 * @param sentenceList
+	 *            : 句子列表，包含句子中的一个个单词
+	 * @param allKeysSets
+	 *            : 所有蛋白质和基因集合
+	 * @param firstCharDict
+	 *            : 当蛋白质全称并非一个单词时, 我们需要比较全称是否存在与句子列表中
+	 * @param geneSynProteinDict
+	 *            : 蛋白质和基因集合作为key, 对应的官方基因名称作为Value
+	 *            从原始句子列表中识别出蛋白质、保存于字典proteinMap中，并将识别出的个数保存此中.
 	 */
 	/*
-	 * Input: OldSentence; Output: NewSentence
-	 * 		(if Old_sentence ！= NewSentence and VariedWords>=2, then print this sentence.)
-	 * Deal with each sentence:
-	 * 1. At first, we should tokenized
-	 * 1. 首先对每一个句子进行分词. 对每一个单词, 先判断它是否存在于allKeysSets集合中:
-	 * 		{若存在, 则直接修改该单词, 且VariedWords+1;
-	 * 		  若不存在, 则判断firstCharDict的所有keys中是否包含的此单词:
-	 * 			{若不包含, 直接返回; 
-	 * 			  若包含, 则判断此单词后序单词是否和firstCharDict.get(firstWord)中某一个相等:
-	 * 				{若相等, 则返回当前单词以及后续相等单词的个数num, 且VariedWords+1; 若不相等, 则直接返回1.}
-	 * 			}
-	 * 		}
-	 * 2. 返回一个句子中出现两个或两个以上蛋白质的句子
-	 * */
-	
+	 * Input: OldSentence Hasword List; Output: NewSentence (if Old_sentence ！= NewSentence
+	 * and VariedWords>=2, then print this sentence.) Deal with each sentence:
+	 * (At first, we should tokenized)
+	 * 1. 首先对每一个句子进行分词. 对每一个单词, 先判断它是否存在于allKeysSets集合中: 
+	 * 	{若存在, 则直接修改该单词, 且VariedWords+1; 
+	 * 	 若不存在, 则判断firstCharDict的所有keys中是否包含的此单词:
+			{	若不包含, 直接返回; 
+			 	若包含, 则判断此单词后序单词是否和firstCharDict.get(firstWord)中某一个相等:
+					{	若相等, 则返回当前单词以及后续相等单词的个数num, 且VariedWords+1;
+						若不相等, 则直接返回1.} } } 
+		2.
+	 * 返回一个句子中出现两个或两个以上蛋白质的句子
+	 */
+
 	public void proteinRecognition(List<HasWord> oldSentenceList,
-			HashSet<String> allKeysSets,
-			HashSet<String> relationKeySet,
+			HashSet<String> allKeysSets, HashSet<String> relationKeySet,
 			HashMap<String, String> firstCharDict,
-			HashMap<String, String> geneSynProteinDict) {
-		
+			HashMap<String, String> geneSynProteinDict)
+	{
+
 		int index = 0, numOfList = oldSentenceList.size();
-		
-		HashSet<String> conjwordset = new HashSet<String>(
-				Arrays.asList("to", "of", "the", "and",
-				"but", "an", "for", "are", "if",
-				"is", "was", "it", "in", "as"));
-		
-/*************  需要改进的地方 
-* 1. 根据词性来识别出句子中的蛋白质实体
-* 2. 利用CRF来识别蛋白质.
-*  --------------------------------> 后期改进
-***********************************************************************************/
-		HashSet<String> negativeWordsSet = new HashSet<String>(
-				Arrays.asList("no", "not", "neither", "nor", "n't"));
-		
-		String key, word;
+
+		HashSet<String> conjwordset = new HashSet<String>(Arrays.asList("to",
+				"of", "the", "and", "but", "an", "for", "are", "if", "is",
+				"was", "it", "in", "as"));
+
+		/*************
+		 * 需要改进的地方 1. 根据词性来识别出句子中的蛋白质实体 2. 利用CRF来识别蛋白质.
+		 * --------------------------------> 后期改进
+		 ***********************************************************************************/
+		HashSet<String> negativeWordsSet = new HashSet<String>(Arrays.asList(
+				"no", "not", "neither", "nor", "n't"));
+
 		/******************************************************************************
-		 * BUG1: Fixed.
-		 * 进一步改进，识别出蛋白质就行，主要参数是列表，识别结束继续返回Hasword列表
-		 * 注意这里需要理解Hasword和String之间是如何转换的.
+		 * BUG1: Fixed. 进一步改进，识别出蛋白质就行，主要参数是列表，识别结束继续返回Hasword列表
+		 * 注意这里需要理解Hasword和String之间是如何转换的. 
 		 * 分词程序有缺陷: try this sentence: Interaction between HSPB1 and MME.
 		 *****************************************************************************/
+		String key, word;
 		HashSet<String> variedWordsHashSet = new HashSet<String>();
-				
+
 		while (index < numOfList) {
 			HasWord wordInSent = oldSentenceList.get(index);
 			word = wordInSent.word();
 			key = word.toLowerCase();
-			
+
 			Word oneHasWord = new Word(word);
-			if (negativeWordsSet.contains(key))
-			{
+			if (negativeWordsSet.contains(key)) {
 				newSentenceList.add(oneHasWord);
 				negativeWordsMap.put(index, word);
-			}
-			else if (relationKeySet.contains(key))
-			{
+			} else if (relationKeySet.contains(key)) {
 				newSentenceList.add(oneHasWord);
-				relationWordsMap.put(index+1, word);
-			}
-			else if (conjwordset.contains(key))
-			{
+				relationWordsMap.put(index + 1, word);
+			} else if (conjwordset.contains(key)) {
 				newSentenceList.add(oneHasWord);
-			}
-			else if (allKeysSets.contains(key))
-			{
-				if (!variedWordsHashSet.contains(key))
-				{
+			} else if (allKeysSets.contains(key)) {
+				if (!variedWordsHashSet.contains(key)) {
 					variedWordsHashSet.add(key);
 				}
 				String value = geneSynProteinDict.get(key);
-				
+
 				oneHasWord.setValue(value);
 				newSentenceList.add(oneHasWord);
-				
+
 				proteinEntity proteinFindEntity = new proteinEntity();
 				proteinFindEntity.setProteinEntity(word, value, 1);
-				proteinMap.put(index+1, proteinFindEntity);
+				proteinMap.put(index + 1, proteinFindEntity);
 			}
 			// 识别蛋白质全称, 先检测其第一个字母是否在集合中
-			else if (firstCharDict.keySet().contains(key))
-			{
-				proteinEntity newProtein = checkProteinFullnameExists(key, index, firstCharDict, oldSentenceList);
+			else if (firstCharDict.keySet().contains(key)) {
+				proteinEntity newProtein = checkProteinFullnameExists(key,
+						index, firstCharDict, oldSentenceList);
 				String newSubkeyStr = newProtein.getOriginalProteinName();
 				// 根据返回新串和首单词进行对比，若不相等，说明存在字符串全称是识别出来的蛋白质
 				if (0 != newSubkeyStr.compareTo(key)) {
@@ -165,18 +158,17 @@ public class proteinREC {
 						variedWordsHashSet.add(newSubkeyStr);
 					}
 					proteinEntity proteinFindEntity = new proteinEntity();
-					proteinFindEntity.setProteinEntity(newSubkeyStr, value, newProtein.getIntNumber());
-					proteinMap.put(index+1, proteinFindEntity);
-					
+					proteinFindEntity.setProteinEntity(newSubkeyStr, value,
+							newProtein.getIntNumber());
+					proteinMap.put(index + 1, proteinFindEntity);
+
 					oneHasWord.setValue(value);
 					newSentenceList.add(oneHasWord);
-				}
-				else {
+				} else {
 					newSentenceList.add(oneHasWord);
 				}
 				index += newProtein.getIntNumber() - 1;
-			}
-			else {
+			} else {
 				newSentenceList.add(oneHasWord);
 			}
 			index += 1;
@@ -184,7 +176,7 @@ public class proteinREC {
 		preSentenceStr = PTBTokenizer.labelList2Text(oldSentenceList);
 		newSentenceStr = PTBTokenizer.labelList2Text(newSentenceList);
 	}
-	
+
 	public List<HasWord> getNewSentenceList() {
 		return newSentenceList;
 	}
@@ -194,41 +186,41 @@ public class proteinREC {
 	}
 
 	/*
-	 * 检查蛋白质数据库中，包含第一个单词的字符串全称是否存在于该数据库中
-	 * 如存在，则返回集合（蛋白质串、全称、全称包含单词个数）
+	 * 检查蛋白质数据库中，包含第一个单词的字符串全称是否存在于该数据库中 如存在，则返回集合（蛋白质串、全称、全称包含单词个数）
 	 * 检查蛋白质全称是否存在, 若存在则返回(蛋白质全称字符串、对应长度)
-	 * */
-	private proteinEntity checkProteinFullnameExists(
-				String firstCharLowerCase,
-				int index,
-				HashMap<String, String> firstCharDict,
-				List<HasWord> sentenceList
-			)
-	{
-		String value = firstCharDict.get(firstCharLowerCase);		
+	 */
+	private proteinEntity checkProteinFullnameExists(String firstCharLowerCase,
+			int index, HashMap<String, String> firstCharDict,
+			List<HasWord> sentenceList) {
+		
+		String value = firstCharDict.get(firstCharLowerCase);
 		String[] allValueList = value.split("\\|");
+		
+		/**
+		 * use a list save all proteins with more than two words, which the first word is the input vaue firstCharLowerCase
+		 * */
 		ArrayList<String> sameFirstCharList = new ArrayList<String>();
-		for (String elemString  : allValueList) {
+		for (String elemString : allValueList) {
 			elemString = elemString.trim();
 			sameFirstCharList.add(elemString);
 		}
-		
+
 		/*
-		 *  compare the key list in the allkeysSet start with key
+		 * compare the key list in the allkeysSet start with key
 		 */
 		int wordListNum = sentenceList.size();
 		String[] keyList = null;
 		int numSubKey = 0, i;
-		proteinEntity proteins = new proteinEntity(firstCharLowerCase, firstCharLowerCase, 1);
-		for (String subKeyStr: sameFirstCharList)
-		{
+		proteinEntity proteins = new proteinEntity(firstCharLowerCase,
+				firstCharLowerCase, 1);
+		for (String subKeyStr : sameFirstCharList) {
 			keyList = subKeyStr.split(" ");
 			numSubKey = keyList.length;
 			i = 0;
 			i = 0;
-			while ((i < numSubKey) && ((index+i) < wordListNum)) {
+			while ((i < numSubKey) && ((index + i) < wordListNum)) {
 				String keystrString = keyList[i].trim();
-				String curWordString = sentenceList.get(index+i).toString();
+				String curWordString = sentenceList.get(index + i).toString();
 				if (keystrString.compareTo(curWordString) != 0) {
 					break;
 				}
@@ -242,7 +234,7 @@ public class proteinREC {
 		}
 		return proteins;
 	}
-	
+
 	public HashMap<Integer, proteinEntity> getProteinMap() {
 		return proteinMap;
 	}
@@ -259,7 +251,7 @@ public class proteinREC {
 			proteinMap.put(Integer.valueOf(index) + 1, newProteinMap);
 		}
 	}
-	
+
 	public String getPreSentenceStr() {
 		return preSentenceStr;
 	}
@@ -295,17 +287,17 @@ public class proteinREC {
 	public void setProteinMap(HashMap<Integer, proteinEntity> proteinMap) {
 		this.proteinMap = proteinMap;
 	}
-	
+
 	/**
 	 * Get the index of specified words in a Hashmap with <int, string>
 	 */
-	public int getLocationOfSpecifiedWords(HashMap<Integer, String> IntStrWordsMap, String words)
-	{
+	public int getLocationOfSpecifiedWords(
+			HashMap<Integer, String> IntStrWordsMap, String words) {
 		Set<Integer> keySet = IntStrWordsMap.keySet();
 		List<Integer> keyList = new ArrayList<Integer>(keySet);
 		Collections.sort(keyList);
-		
-		for (Integer key: keyList) {
+
+		for (Integer key : keyList) {
 			String value = IntStrWordsMap.get(key);
 			if (words.compareTo(value) == 0) {
 				return key; // the location in the array
@@ -313,47 +305,47 @@ public class proteinREC {
 		}
 		return -1;
 	}
-	
 
 	/******************************************************************************************************/
 	/**
-	 * Get the negative words number in current line, and Print all negative words in current line if needed.
+	 * Get the negative words number in current line, and Print all negative
+	 * words in current line if needed.
 	 */
 	public int getNumberOfNegativeWords() {
 		return negativeWordsMap.size();
 	}
+
 	public String getStringOfNegativeWords() {
-		
+
 		String relationStr = "";
-		
+
 		Set<Integer> keySet = negativeWordsMap.keySet();
 		List<Integer> keyList = new ArrayList<Integer>(keySet);
 		Collections.sort(keyList);
-		
+
 		int firstFlag = 1;
-		for (Integer key: keyList) {
+		for (Integer key : keyList) {
 			String value = negativeWordsMap.get(key);
 			if (firstFlag == 1) {
 				relationStr = key + ": ";
 				firstFlag = 0;
-			}
-			else {
+			} else {
 				relationStr += " || " + key + ": ";
 			}
 			relationStr += value;
 		}
 		return relationStr.trim();
 	}
+
 	/******************************************************************************************************/
 
 	/******************************************************************************************************/
 	/**
 	 * Get the location of Given HasWord or String.
 	 */
-	public int getLocationOfAHasWord(HasWord word)
-	{
+	public int getLocationOfAHasWord(HasWord word) {
 		int index = 0;
-		for (HasWord aWord: newSentenceList) {
+		for (HasWord aWord : newSentenceList) {
 			if (word.equals(aWord)) {
 				break;
 			}
@@ -361,13 +353,11 @@ public class proteinREC {
 		}
 		return index;
 	}
-	
-	public int getLocationOfAString(String str)
-	{
+
+	public int getLocationOfAString(String str) {
 		int index = 0;
 		Word wordSample = new Word(str);
-		for (HasWord aWord: newSentenceList)
-		{
+		for (HasWord aWord : newSentenceList) {
 			if (wordSample.equals(aWord)) {
 				break;
 			}
@@ -375,16 +365,16 @@ public class proteinREC {
 		}
 		return index;
 	}
-	
+
 	public String getStringFromLocation(int index) {
-		if (index >= 0)
-		{
+		if (index >= 0) {
 			return newSentenceList.get(index).word();
 		}
 		return null;
 	}
+
 	/******************************************************************************************************/
-	
+
 	/******************************************************************************************************/
 	/**
 	 * Get the number of relation words in current line.
@@ -392,32 +382,34 @@ public class proteinREC {
 	public int getNumberOfRelationWords() {
 		return relationWordsMap.size();
 	}
+
 	/**
-	 * Print all the recognition words and the corresponding location in current line.
+	 * Print all the recognition words and the corresponding location in current
+	 * line.
 	 */
 	public String getStringOfRelationWords() {
 		String relationStr = "";
-		
+
 		Set<Integer> keySet = relationWordsMap.keySet();
 		List<Integer> keyList = new ArrayList<Integer>(keySet);
 		Collections.sort(keyList);
-		
+
 		int firstFlag = 1;
-		for (int key: keyList) {
+		for (int key : keyList) {
 			String value = relationWordsMap.get(key);
 			if (firstFlag == 1) {
 				relationStr = key + ": ";
 				firstFlag = 0;
-			}
-			else {
+			} else {
 				relationStr += " || " + key + ": ";
 			}
 			relationStr += value;
 		}
 		return relationStr.trim();
 	}
+
 	/******************************************************************************************************/
-	
+
 	/******************************************************************************************************/
 	/**
 	 * Get the recognition proteins in current line.
@@ -425,9 +417,10 @@ public class proteinREC {
 	public int getNumberOfRecognitionProteins() {
 		return proteinMap.size();
 	}
-	
+
 	/**
 	 * get the location of recognition protein in current HashMap
+	 * 
 	 * @param protein
 	 * @return
 	 */
@@ -435,7 +428,7 @@ public class proteinREC {
 		Set<Integer> keySet = proteinMap.keySet();
 		List<Integer> keyList = new ArrayList<Integer>(keySet);
 		Collections.sort(keyList);
-		
+
 		for (int key : keyList) {
 			proteinEntity valueEntity = proteinMap.get(key);
 			String value = valueEntity.getNewProteinFullName();
@@ -445,28 +438,29 @@ public class proteinREC {
 		}
 		return -1;
 	}
-	
+
 	/**
-	 * Print all the recognition Proteins and the corresponding location in current line.
+	 * Print all the recognition Proteins and the corresponding location in
+	 * current line.
 	 */
 	public String getStringOfRecognitionProtein() {
 		String recognitionStr = "";
-		
+
 		Set<Integer> keySet = proteinMap.keySet();
 		List<Integer> keyList = new ArrayList<Integer>(keySet);
 		Collections.sort(keyList);
-		
+
 		int firstFlag = 1;
-		for (Integer key: keyList) {
+		for (Integer key : keyList) {
 			proteinEntity value = proteinMap.get(key);
 			if (firstFlag == 1) {
 				recognitionStr = key + ": ";
 				firstFlag = 0;
-			}
-			else {
+			} else {
 				recognitionStr += " || " + key + ": ";
 			}
-			recognitionStr += value.getOriginalProteinName() + " -> " + value.getNewProteinFullName();
+			recognitionStr += value.getOriginalProteinName() + " -> "
+					+ value.getNewProteinFullName();
 		}
 		return recognitionStr;
 	}
@@ -482,5 +476,5 @@ public class proteinREC {
 	 * 
 	 * 检测句子边界可以看出是一个分类问题。
 	 */
-	
+
 }
