@@ -83,7 +83,7 @@ class ParserDemo {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-				
+		
 		/*
 		 * 这里加上
 		 * 1. 从文件中读取摘要,对摘要进行分句([.?!]).
@@ -99,11 +99,12 @@ class ParserDemo {
 				pubmedFileList.add(fileList[i].getName());
 			}
 		}
+		System.out.println(pubmedFileList.size());
 		
 		String testFileList[] = new String[]
 				{
-				"12058025", "12058031"
-				}; //  "12358744", "16043634", "18062930", "18424275", "20578993", "11278549" 
+				"2446864"
+				}; //  "19740107", "11943787", "2446864", "18062930", "18424275", "20578993", "11278549", "17342744New" 
 		HashMap<String, String> interactiveProteinsMap = new HashMap<String, String>();
 		ppiTextProcess pubmedTextProcess = new ppiTextProcess();
 		
@@ -111,6 +112,9 @@ class ParserDemo {
 			setfilenameExp(file);
 			System.out.println(pubmedID);
 			String pubmedTextFullName = config.srcPubmedText + File.separator + pubmedID;
+			if (config.__DEBUG__ == true) {
+				pubmedTextFullName = config.BaseDIR + File.separator + pubmedID;
+			}
 			
 			pubmedTextProcess.setPubmedID(pubmedID);
 			pubmedTextProcess.pubmedTextProcessing(pubmedTextFullName,
@@ -125,7 +129,7 @@ class ParserDemo {
 		String allInteractiveProteinPairStr = ConvertHashMapIntoStr(interactiveProteinsMap, "# Pubmed id\tGene1|Gene2\n");
 		writeIntoFile(allInteractiveProteinPairStr, config.allRecognitionPPIFname);
 		
-		if (config.__ANALYSISFLAG__ == true)
+		if (config.__ANALYSISFLAG__ == true && config.__DEBUG__ != true)
 		{
 			resultanalysis resAnalysis = new resultanalysis();
 			resAnalysis.proteinExtractionStatistic();
@@ -232,7 +236,7 @@ class ParserDemo {
      * @param filePath 
      *            要删除文件或目录的路径。 
      * @return 当且仅当成功删除文件或目录时，返回 true；否则返回 false。 
-     */ 
+     */
 	public static void delFolder(String folderPath) {
 		try {
 			deleteFile(folderPath); //删除完里面所有内容

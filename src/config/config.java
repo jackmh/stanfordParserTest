@@ -9,7 +9,7 @@ public class config {
 	public static boolean __ANALYSISFLAG__ = true;
 	
 	public static String BaseDIR = "./proteinPI";
-	public static String srcPubmedText = "/home/jack/Workspaces/expPPI/pubmedtextTestData";
+	public static String srcPubmedText = "/home/jack/Workspaces/expPPI/pubmedtextData";
 	public static String DstDIR = "/home/jack/Workspaces/recognizedPPI";
 	public static String allRecognitionPPIFname = "/home/jack/Workspaces/pubmedPPIRecognition.result";
 	

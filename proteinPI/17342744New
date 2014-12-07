@@ -1,9 +1,11 @@
+10, Structured digital abstract: * MINT-7256556: EGF (uniprotkb: P01133) binds (MI:0407) to S100A4 (uniprotkb: P26447) by far western blotting (MI:0047) * MINT-7256512: BC (uniprotkb: P35070) binds (MI:0407) to S100A4 (uniprotkb: P26447) by far western blotting (MI:0047) * MINT-7256485, MINT-7256618, MINT-7256636: AR (uniprotkb: P15514) binds (MI:0407) to S100A4 (uniprotkb: P26447) by far western blotting (MI:0047) * MINT-7256494: HB-EGF (uniprotkb: Q99075) binds (MI:0407) to S100A4 (uniprotkb: P26447) by far western blotting (MI:0047) * MINT-7256502: P53 (uniprotkb: P04637) binds (MI:0407) to S100A4 (uniprotkb: P26447) by far western blotting (MI:0047) * MINT-7256654: S100A2 (uniprotkb: P29034) binds (MI:0407) to AR (uniprotkb: P15514) by far western blotting (MI:0047) * MINT-7256693: S100A5 (uniprotkb: P33763) binds (MI:0407) to AR (uniprotkb: P15514) by far western blotting (MI:0047) * MINT-7256593: S100A4 (uniprotkb: P26447) binds (MI:0407) to BC (uniprotkb: P35070) by pull down (MI:0096) * MINT-7256567: S100A4 (uniprotkb: P26447) binds (MI:0407) to AR (uniprotkb: P15514) by pull down (MI:0096).
+42, Translin has also been identified as a component of a gel-shift complex detected using an RNA oligonucleotide probe, derived from the 3' UTR of protamine-2 mRNA.
+
 11, HSP27 has an interaction with HSP70.
 4, Interaction HSP27 with CD10 and RNF7P1.
 
 14, HSP27 has no association with HSP70.
 41, Trax is a component of the Translin-containing RNA binding complex.
-42, Translin has also been identified as a component of a gel-shift complex detected using an RNA oligonucleotide probe, derived from the 3' UTR of protamine-2 mRNA.
 43, TSNAX is a SMN1 the Translin-containing RNA binding complex.
 
 12, HSP27 has weak association with HSP70.

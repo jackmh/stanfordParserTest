@@ -90,7 +90,10 @@ public class resultanalysis {
 				String[] recogProteinsList = recognitionProteinPairs.split("\\,");
 				for (String proteinPair : recogProteinsList)
 				{
-					if (proteinSet.contains(proteinPair))
+					String GeneA = proteinPair.split("\\|")[0].trim();
+					String GeneB = proteinPair.split("\\|")[1].trim();
+					String newProteinPairs = GeneB + "|" + GeneA;
+					if (proteinSet.contains(proteinPair) || proteinSet.contains(newProteinPairs))
 					{
 						rightRecognitionNum += 1;
 					}

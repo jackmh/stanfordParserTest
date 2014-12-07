@@ -23,10 +23,15 @@ public class GetRelationParseTree {
 	private HashSet<String> interactionPairSet = new HashSet<String>();
 	
 	// Three relation extraction rules.
+	
+	/*
+	 * PIP: 这里会出现分词系统错误, 常因词性分析不正确而出错. 这里需要添加常出现的词库
+	 **/
+	
 	private String[] relationPPIRule = new String[]
 			{
 				"/^NN.*|^CD.*/=GeneA .. (/^NN.*|^CD.*/=GeneB .. /^NN.*/=Relation)",
-				"/^NN.*|^CD.*/=GeneA .. (/^VB.*/=Relation .. /^NN.*|^CD.*/=GeneB)",
+				"/^NN.*|^CD.*/=GeneA .. (/^VB.*|^NN.*/=Relation .. /^NN.*|^CD.*/=GeneB)",
 				"/^NN.*/=Relation .. (/^NN.*|^CD.*/=GeneA .. /^NN.*|^CD.*/=GeneB)",
 				"/^NN.*|^CD.*/=GeneA .. (/^VB.*/=Verb .. (/^NN.*/=Relation .. /^NN.*|^CD.*/=GeneB))"
 			};
@@ -73,7 +78,7 @@ public class GetRelationParseTree {
 			newSentenceText += textStr;
 			k += 1;
 		}
-		newSentenceText += "=============================================\n";
+		newSentenceText += "=============================================\n\n";
 		return newSentenceText;
 	}
 	
